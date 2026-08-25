@@ -1,0 +1,18 @@
+{
+  "name": "ANY REQUEST PASS",
+  "short_name": "REQUEST PASS",
+  "description": "ふたりのお願いと思い出を残すアプリ",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0c0715",
+  "theme_color": "#160e28",
+  "icons": [
+    {
+      "src": "ticket-active.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
