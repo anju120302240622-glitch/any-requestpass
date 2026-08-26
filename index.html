@@ -3063,7 +3063,6 @@ async function chooseProfile(profile){
       setCloudStatus("☁ 接続中");await ensureFirebase();
       firebasePairId=await inviteCodeToId(code);const ref=firebaseDb.doc(`couples/${firebasePairId}`);const doc=await ref.get();
       if(!doc.exists)throw new Error("招待コードが違います");
-      if(doc.data().userUid&&doc.data().userUid!==firebaseUser.uid)throw new Error("この招待コードはすでに使用されています");
       await ref.update({userUid:firebaseUser.uid,joinedAt:firebase.firestore.FieldValue.serverTimestamp()});
       currentProfile="keiji";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);document.getElementById("profileSelect")?.classList.remove("show");
     }
