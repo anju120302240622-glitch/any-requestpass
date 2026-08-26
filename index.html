@@ -2534,6 +2534,7 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
         <div class="status-label">CURRENT USER</div>
         <div class="status-value" id="statusProfileValue">未選択</div>
         <div class="device-role-note">この役割は端末ごとに固定されます<br>anjuとkeijiは別のスマホで使用</div>
+        <button type="button" class="profile-switch" onclick="confirmDeviceRoleReset()">端末の役割をやり直す</button>
       </div>
   
       <div class="status-card">
@@ -3047,6 +3048,22 @@ function updateProfileDisplay(){
 function showProfileSelect(){
   const modal = document.getElementById("profileSelect");
   if(modal) modal.classList.add("show");
+}
+
+function confirmDeviceRoleReset(){
+  const modal=document.createElement("div");modal.className="pass-confirm";modal.style.zIndex="22000";
+  modal.innerHTML=`<div class="pass-confirm-card"><div class="pass-confirm-ticket">⚠️</div><h2>端末の役割をやり直す？</h2><p>この端末のanju／keiji設定と個人所持品を初期化します。ROOM・MEMORY・お願いなどの共有データはFirebaseに残ります。</p><div class="pass-confirm-actions"><button type="button" id="roleResetCancel" class="ghost-btn" style="display:block">戻る</button><button type="button" id="roleResetRun">やり直す</button></div></div>`;
+  document.body.appendChild(modal);modal.querySelector("#roleResetCancel").onclick=()=>modal.remove();modal.querySelector("#roleResetRun").onclick=()=>resetDeviceRole(modal);
+}
+
+async function resetDeviceRole(modal){
+  const button=modal?.querySelector("#roleResetRun");if(button){button.disabled=true;button.textContent="初期化中…";}
+  const personalKeys=["requestFragments","spacePoints","grassCount","stoneCount","cloverCount","legendGrassCount","jewelCount","gachaCount","mineDeathCount","loginDates","lastLoginDateISO","totalLoginDays","loginStreak","toyCount","snackCount","loveLetterCount","boneCount","wingCount","devilStampCount","freeGacha","gameBestScores","gamePeriodScores"];
+  personalKeys.forEach(key=>localStorage.removeItem(key));
+  localStorage.removeItem("firebasePairId");localStorage.removeItem("currentProfile");sessionStorage.clear();
+  firebasePairId="";currentProfile="";sharedStateReady=false;
+  try{if(window.firebase?.apps?.length)await firebase.auth().signOut();}catch(error){console.warn("匿名ログアウトに失敗",error);}
+  location.reload();
 }
 
 async function chooseProfile(profile){
