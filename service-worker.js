@@ -1,4 +1,4 @@
-const CACHE_NAME = "any-request-pass-v1";
+const CACHE_NAME = "any-request-pass-v2-firebase";
 const CORE_FILES = [
   "./",
   "./index.html",

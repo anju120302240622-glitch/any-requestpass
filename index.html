@@ -12,6 +12,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="ticket-active.png">
 <title>ANY REQUEST PASS</title>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore-compat.js"></script>
 
 <style>
 body{
@@ -1964,6 +1967,24 @@ body{
 .request-history-item{margin-bottom:8px;padding:13px;border-radius:16px;background:var(--app-surface);border:1px solid var(--app-line)}
 .request-history-item strong{display:block;margin-bottom:5px;font-size:14px}
 .request-history-item small{color:var(--app-muted)}
+.pass-remaining{display:flex;justify-content:space-between;align-items:center;margin:0 0 12px;padding:15px 17px;border-radius:19px;background:linear-gradient(135deg,rgba(236,72,153,.17),rgba(124,58,237,.17));border:1px solid rgba(244,114,182,.28)}
+.pass-remaining span{font-size:11px;color:#cfc3de;letter-spacing:.08em}.pass-remaining strong{font-size:24px;text-shadow:0 0 18px rgba(244,114,182,.5)}
+.pass-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:10px 0}.pass-fields select,.pass-fields input{width:100%;min-width:0;box-sizing:border-box;padding:14px 10px;border-radius:15px;background:#110b1c;border:1px solid var(--app-line);color:white}
+#requestImagePreview{display:none;width:100%;max-height:230px;object-fit:cover;margin:8px 0 12px;border-radius:16px}#requestImagePreview.show{display:block}
+.pass-confirm{position:fixed;inset:0;z-index:17000;display:grid;place-items:center;padding:22px;background:rgba(6,3,12,.9);backdrop-filter:blur(16px)}.pass-confirm-card{width:min(100%,360px);max-height:84vh;overflow:auto;padding:25px;box-sizing:border-box;border-radius:28px;background:linear-gradient(155deg,#2b193f,#130b20);border:1px solid rgba(255,255,255,.15);box-shadow:0 30px 80px rgba(0,0,0,.55);text-align:center;animation:arcadeEnter .3s ease}.pass-confirm-ticket{font-size:58px;filter:drop-shadow(0 0 24px #f472b6);animation:pulseOpen .9s ease-in-out infinite}.pass-confirm-detail{text-align:left;margin:15px 0;padding:14px;border-radius:16px;background:rgba(255,255,255,.06);font-size:13px;line-height:1.7}.pass-confirm-photo{width:100%;max-height:180px;object-fit:cover;margin-top:10px;border-radius:13px}.pass-confirm-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.pass-confirm-actions button{margin:0}.pass-use-burst{position:fixed;inset:0;z-index:16000;pointer-events:none;background:radial-gradient(circle,rgba(244,114,182,.72),transparent 55%);animation:passBurst 1.2s ease forwards}.pass-confetti{position:fixed;z-index:16001;top:45%;pointer-events:none;animation:passConfetti 1.2s ease-out forwards}@keyframes passBurst{0%{opacity:0;transform:scale(.6)}35%{opacity:1}100%{opacity:0;transform:scale(1.5)}}@keyframes passConfetti{to{opacity:0;transform:translate(var(--pass-x),var(--pass-y)) rotate(540deg)}}
+.request-status{display:inline-block;margin:7px 0 4px;padding:4px 8px;border-radius:999px;background:rgba(34,197,94,.14);border:1px solid rgba(74,222,128,.2);color:#86efac;font-size:10px;font-weight:850}.request-history-meta{display:block;color:var(--app-muted);font-size:11px;line-height:1.55}
+#tab-pass .ticket-wrap{padding:10px;box-sizing:border-box;border-radius:24px;background:linear-gradient(145deg,rgba(236,72,153,.14),rgba(124,58,237,.12));border:1px solid rgba(244,114,182,.25);box-shadow:0 18px 42px rgba(124,58,237,.18);transition:.35s}
+#tab-pass .ticket-wrap::after{content:"ACTIVE";position:absolute;right:18px;top:17px;padding:6px 10px;border-radius:999px;background:#22c55e;color:#052e16;font-size:9px;font-weight:950;letter-spacing:.12em;box-shadow:0 0 18px rgba(34,197,94,.55)}
+#tab-pass:not(.ticket-used-mode) #btn{background:linear-gradient(135deg,#ec4899,#7c3aed);box-shadow:0 10px 28px rgba(236,72,153,.3)}
+#tab-pass.ticket-used-mode{position:relative;background:linear-gradient(180deg,rgba(45,43,51,.34),rgba(14,13,18,.2))!important}
+#tab-pass.ticket-used-mode .ticket-wrap{background:rgba(40,39,45,.72);border-color:rgba(255,255,255,.1);box-shadow:none}
+#tab-pass.ticket-used-mode .ticket-wrap::after{content:"USED ✓";left:50%;right:auto;top:50%;transform:translate(-50%,-50%) rotate(-10deg);padding:11px 22px;border:3px solid #f87171;border-radius:12px;background:rgba(20,15,18,.8);color:#f87171;font-size:23px;letter-spacing:.18em;box-shadow:0 0 28px rgba(248,113,113,.25);z-index:4}
+#tab-pass.ticket-used-mode .ticket{filter:grayscale(1) brightness(.48)!important;opacity:.65}
+#tab-pass.ticket-used-mode .pass-remaining{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.09);color:#9ca3af}
+#tab-pass.ticket-used-mode .pass-remaining strong{color:#f87171;text-shadow:none}
+#tab-pass.ticket-used-mode .pass-fields,#tab-pass.ticket-used-mode .memory-image-picker,#tab-pass.ticket-used-mode #requestImagePreview{display:none!important}
+#tab-pass.ticket-used-mode #requestText{background:rgba(255,255,255,.035);border-style:dashed;color:#aaa;opacity:.82}
+#tab-pass.ticket-used-mode #btn{background:#3f3f46!important;color:#a1a1aa;border:1px solid #52525b;box-shadow:none}
 .settings-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .settings-actions button{margin:0;min-height:52px;font-size:13px}
 .memory-image-picker{display:block;margin:10px 0;padding:13px;border-radius:16px;background:var(--app-surface);border:1px dashed rgba(255,255,255,.22);cursor:pointer}
@@ -2186,6 +2207,8 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
 .profile-choice button{min-height:106px;margin:0;border-radius:20px;font-size:16px}
 .profile-choice span{display:block;margin-bottom:7px;font-size:30px}
 .profile-switch{margin-top:14px!important;font-size:12px!important;opacity:.75}
+.pair-code{margin:15px 0;padding:15px;border-radius:16px;background:#0d0816;border:1px dashed #f472b6;color:#f9a8d4;font:800 17px monospace;letter-spacing:.08em;word-break:break-all;user-select:all}
+.cloud-sync-status{position:fixed;right:12px;bottom:calc(78px + env(safe-area-inset-bottom));z-index:8000;padding:7px 10px;border-radius:999px;background:rgba(12,7,21,.86);border:1px solid rgba(255,255,255,.1);font-size:9px;color:#a1a1aa;pointer-events:none}.cloud-sync-status.online{color:#86efac}.cloud-sync-status.error{color:#fca5a5}
 </style>
 </head>
 
@@ -2198,15 +2221,16 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
 <div id="profileSelect" class="profile-select" role="dialog" aria-modal="true" aria-labelledby="profileTitle">
   <div class="profile-card">
     <h2 id="profileTitle">だれが使いますか？</h2>
-    <p>この端末で使う人を選んでね</p>
+    <p>最初の端末は管理者、相手の端末は招待コードで参加</p>
     <div class="profile-choice">
-      <button type="button" onclick="chooseProfile('anju')"><span>🎀</span>anju<small>作成者</small></button>
-      <button type="button" onclick="chooseProfile('keiji')"><span>🫶</span>keiji<small>使用者</small></button>
+      <button type="button" onclick="chooseProfile('anju')"><span>🎀</span>anju<small>管理者として開始</small></button>
+      <button type="button" onclick="chooseProfile('keiji')"><span>🫶</span>keiji<small>招待コードで参加</small></button>
     </div>
   </div>
 </div>
 
 <div class="wrap hidden" id="app">
+  <div id="cloudSyncStatus" class="cloud-sync-status">☁ 接続準備中</div>
 
   <header class="app-bar">
     <div class="app-brand">
@@ -2292,23 +2316,23 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
 
     <button type="button" class="ghost-btn home-top-btn" onclick="showTab('tab-home')">← HOME</button>
   
+    <div class="pass-remaining"><span>今月のお願い</span><strong id="passRemainingText">あと1回</strong></div>
     <div class="ticket-wrap" id="ticketArea">
       <img src="ticket-active.png" class="ticket" id="ticketImage">
       <div class="scan-line"></div>
     </div>
   
+    <div class="pass-fields"><select id="requestCategory" aria-label="お願いの種類"><option>してほしい</option><option>デート</option><option>食べたいもの</option><option>買ってほしい</option><option>行きたい場所</option><option>その他</option></select><input id="requestDeadline" type="date" aria-label="叶えてほしい期限"></div>
     <textarea id="requestText" placeholder="お願い内容を書いてね"></textarea>
+    <label class="memory-image-picker">📷 お願いの画像を選ぶ<input id="requestImage" type="file" accept="image/*" onchange="prepareRequestImage(this.files[0])"></label>
+    <img id="requestImagePreview" alt="お願い画像のプレビュー">
   
     <button type="button" id="btn" onclick="useTicket()">使用する</button>
     <button type="button" class="gift-btn" onclick="showGift()">🎁 OPEN GIFT</button>
   
     <div id="monthCard" class="month-card">
-      <div class="month-title">📅 今月の状況</div>
-  
-      <div class="month-row">
-        <span>STATUS</span>
-        <strong id="monthStatusText">ACTIVE</strong>
-      </div>
+      <div class="month-title">📅 次回・イベント情報</div>
+      <strong id="monthStatusText" hidden>ACTIVE</strong>
   
       <div class="month-row">
         <span>NEXT</span>
@@ -2637,6 +2661,115 @@ try{
 }
 let requestHistory = JSON.parse(localStorage.getItem("requestHistory") || "[]");
 let currentProfile = localStorage.getItem("currentProfile") || "";
+let firebaseDb = null;
+let firebaseUser = null;
+let firebasePairId = localStorage.getItem("firebasePairId") || "";
+let sharedStateReady = false;
+let sharedStateFingerprint = "";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBl0GQn8mKPPEy12J1fdJD4RczJLdnkMnQ",
+  authDomain: "any-requestpass.firebaseapp.com",
+  projectId: "any-requestpass",
+  storageBucket: "any-requestpass.firebasestorage.app",
+  messagingSenderId: "8502091324",
+  appId: "1:8502091324:web:c21b1108a4b7d83c8e2d39",
+  measurementId: "G-NN5N8Y51HD"
+};
+
+function setCloudStatus(text,state=""){
+  const status=document.getElementById("cloudSyncStatus");
+  if(!status)return;
+  status.textContent=text;status.className="cloud-sync-status "+state;
+}
+
+async function ensureFirebase(){
+  if(firebaseUser && firebaseDb) return firebaseUser;
+  if(!window.firebase) throw new Error("Firebaseを読み込めませんでした");
+  if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  firebaseDb=firebase.firestore();
+  const credential=await firebase.auth().signInAnonymously();
+  firebaseUser=credential.user;
+  return firebaseUser;
+}
+
+function makeInviteCode(){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const random=new Uint32Array(20);crypto.getRandomValues(random);
+  return Array.from(random,n=>chars[n%chars.length]).join("");
+}
+
+async function inviteCodeToId(code){
+  const clean=code.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const bytes=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(clean));
+  return Array.from(new Uint8Array(bytes),b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+function showInviteCode(code){
+  return new Promise(resolve=>{
+    const modal=document.createElement("div");modal.className="pass-confirm";
+    modal.innerHTML=`<div class="pass-confirm-card"><div class="pass-confirm-ticket">🔗</div><h2>招待コード</h2><p>keijiの端末でこのコードを入力してね</p><div class="pair-code">${code.match(/.{1,4}/g).join("-")}</div><p style="font-size:11px;color:#aaa">このコードは再連携にも使うので保存してね</p><button type="button">保存した・アプリを開く</button></div>`;
+    document.body.appendChild(modal);modal.querySelector("button").onclick=()=>{modal.remove();resolve();};
+  });
+}
+
+const sharedKeys=["lovePoints","loveLevel","requestFragments","spacePoints","grassCount","stoneCount","cloverCount","legendGrassCount","jewelCount","gachaCount","mineDeathCount","loginDates","totalLoginDays","loginStreak","memories","requestHistory","anniversaryMonths","firstAnniversary2026","roomLightOn","catState"];
+
+function collectSharedValues(){
+  const values={};
+  sharedKeys.forEach(key=>{
+    let value=localStorage.getItem(key);
+    if(key==="memories" && value){
+      try{value=JSON.stringify(JSON.parse(value).map(item=>({...item,image:""})));}catch(error){}
+    }
+    if(value!==null) values[key]=value;
+  });
+  for(let i=0;i<localStorage.length;i++){
+    const key=localStorage.key(i);
+    if(/^(roomPos_|hide_|unlock_)/.test(key)) values[key]=localStorage.getItem(key);
+  }
+  return values;
+}
+
+async function uploadSharedState(){
+  if(!sharedStateReady||!firebaseDb||!firebasePairId)return;
+  const values=collectSharedValues();const fingerprint=JSON.stringify(values);
+  if(fingerprint===sharedStateFingerprint)return;
+  sharedStateFingerprint=fingerprint;setCloudStatus("☁ 同期中");
+  await firebaseDb.doc(`couples/${firebasePairId}/shared/appState`).set({values,updatedBy:firebaseUser.uid,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  setCloudStatus("☁ 同期済み","online");
+}
+
+function applySharedValues(values){
+  let changed=false;
+  Object.entries(values||{}).forEach(([key,value])=>{
+    if(localStorage.getItem(key)!==value){localStorage.setItem(key,value);changed=true;}
+  });
+  return changed;
+}
+
+async function connectPair(){
+  if(!firebasePairId)return;
+  await ensureFirebase();setCloudStatus("☁ 接続中");
+  const pairRef=firebaseDb.doc(`couples/${firebasePairId}`);
+  const pair=await pairRef.get();
+  if(!pair.exists) throw new Error("ペアが見つかりません");
+  const data=pair.data();
+  if(data.adminUid!==firebaseUser.uid&&data.userUid!==firebaseUser.uid) throw new Error("この端末はペアに参加していません");
+  currentProfile=data.adminUid===firebaseUser.uid?"anju":"keiji";localStorage.setItem("currentProfile",currentProfile);
+  await pairRef.collection("profiles").doc(firebaseUser.uid).set({name:currentProfile,role:currentProfile==="anju"?"admin":"user",lastSeen:firebase.firestore.FieldValue.serverTimestamp(),loginStreak,totalLoginDays},{merge:true});
+  const stateRef=pairRef.collection("shared").doc("appState");
+  const first=await stateRef.get();
+  if(first.exists&&applySharedValues(first.data().values)){sessionStorage.setItem("firebaseSyncedReload","1");location.reload();return;}
+  sharedStateReady=true;
+  if(!first.exists){sharedStateFingerprint="";await uploadSharedState();}
+  else{sharedStateFingerprint=JSON.stringify(collectSharedValues());}
+  stateRef.onSnapshot(snapshot=>{
+    if(!snapshot.exists||snapshot.data().updatedBy===firebaseUser.uid)return;
+    if(applySharedValues(snapshot.data().values)){setCloudStatus("☁ 新しいデータを反映","online");setTimeout(()=>location.reload(),700);}
+  });
+  setInterval(uploadSharedState,3500);setCloudStatus("☁ 2人で同期中","online");updateProfileDisplay();
+}
 
 function profileLabel(){
   return currentProfile === "anju" ? "anju（作成者）" :
@@ -2653,13 +2786,25 @@ function showProfileSelect(){
   if(modal) modal.classList.add("show");
 }
 
-function chooseProfile(profile){
+async function chooseProfile(profile){
   if(profile !== "anju" && profile !== "keiji") return;
-  currentProfile = profile;
-  localStorage.setItem("currentProfile", profile);
-  document.getElementById("profileSelect")?.classList.remove("show");
-  updateProfileDisplay();
-  openApp();
+  try{
+    setCloudStatus("☁ 接続中");await ensureFirebase();
+    if(profile==="anju"){
+      const code=makeInviteCode();firebasePairId=await inviteCodeToId(code);
+      await firebaseDb.doc(`couples/${firebasePairId}`).set({adminUid:firebaseUser.uid,userUid:null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      currentProfile="anju";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);
+      document.getElementById("profileSelect")?.classList.remove("show");await showInviteCode(code);
+    }else{
+      const code=prompt("anjuの端末に表示された招待コードを入力してね");if(!code)return;
+      firebasePairId=await inviteCodeToId(code);const ref=firebaseDb.doc(`couples/${firebasePairId}`);const doc=await ref.get();
+      if(!doc.exists)throw new Error("招待コードが違います");
+      if(doc.data().userUid&&doc.data().userUid!==firebaseUser.uid)throw new Error("この招待コードはすでに使用されています");
+      await ref.update({userUid:firebaseUser.uid,joinedAt:firebase.firestore.FieldValue.serverTimestamp()});
+      currentProfile="keiji";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);document.getElementById("profileSelect")?.classList.remove("show");
+    }
+    await connectPair();updateProfileDisplay();openApp();
+  }catch(error){setCloudStatus("☁ 接続エラー","error");alert(error.message||"連携できませんでした");}
 }
 
 function escapeHtml(value){
@@ -2678,7 +2823,8 @@ function renderRequestHistory(){
   list.innerHTML = requestHistory.slice(0,12).map(item=>`
     <div class="request-history-item">
       <strong>${escapeHtml(item.text)}</strong>
-      <small>受付済み・${escapeHtml(item.sender)}・${escapeHtml(item.date)}</small>
+      <span class="request-status">${escapeHtml(item.status || "受付済み")}</span>
+      <span class="request-history-meta">${escapeHtml(item.category || "その他")}・${escapeHtml(item.sender)}<br>${escapeHtml(item.date)}${item.deadline ? "・期限："+escapeHtml(item.deadline) : ""}</span>
     </div>
   `).join("");
 }
@@ -2886,18 +3032,65 @@ function runDailyOpenEffects(){
     startSeasonEffect();
   }
 }
+let requestImageData = "";
+let requestImageName = "request-image.jpg";
+
+function prepareRequestImage(file){
+  const preview=document.getElementById("requestImagePreview");
+  requestImageData="";
+  if(!file){preview?.classList.remove("show");return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const image=new Image();
+    image.onload=()=>{
+      const scale=Math.min(1,900/Math.max(image.width,image.height));
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
+      canvas.getContext("2d").drawImage(image,0,0,canvas.width,canvas.height);
+      requestImageData=canvas.toDataURL("image/jpeg",.72);
+      requestImageName=(file.name.replace(/\.[^.]+$/," ").trim()||"request-image")+".jpg";
+      preview.src=requestImageData;preview.classList.add("show");
+    };
+    image.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function confirmRequestPass({request,category,deadline,image}){
+  return new Promise(resolve=>{
+    const modal=document.createElement("div");
+    modal.className="pass-confirm";
+    modal.innerHTML=`<div class="pass-confirm-card"><div class="pass-confirm-ticket">🎫</div><h2>このお願いで使う？</h2><div class="pass-confirm-detail"><b>${escapeHtml(category)}</b><br>${escapeHtml(request)}<br>${deadline?"期限："+escapeHtml(deadline):"期限：なし"}${image?`<img class="pass-confirm-photo" src="${image}" alt="添付画像">`:""}</div><div class="pass-confirm-actions"><button type="button" data-answer="no">戻る</button><button type="button" data-answer="yes">この内容で使う</button></div></div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('[data-answer="no"]').onclick=()=>{modal.remove();resolve(false);};
+    modal.querySelector('[data-answer="yes"]').onclick=()=>{modal.remove();resolve(true);};
+  });
+}
+
+function showPassUseEffect(){
+  const burst=document.createElement("div");burst.className="pass-use-burst";document.body.appendChild(burst);setTimeout(()=>burst.remove(),1250);
+  for(let i=0;i<22;i++){
+    const piece=document.createElement("i");piece.className="pass-confetti";piece.textContent=["✨","♡","🎫","✦"][i%4];piece.style.left=(42+Math.random()*16)+"vw";piece.style.setProperty("--pass-x",(Math.random()-.5)*320+"px");piece.style.setProperty("--pass-y",(-100+Math.random()*300)+"px");document.body.appendChild(piece);setTimeout(()=>piece.remove(),1300);
+  }
+}
+
+function updatePassRemaining(){
+  const el=document.getElementById("passRemainingText");if(!el)return;
+  el.textContent=localStorage.getItem("usedMonth")===thisMonth?"あと0回":"あと1回";
+}
+
 async function useTicket(){
 
   const request = requestText.value.trim();
+  const category = document.getElementById("requestCategory").value;
+  const deadline = document.getElementById("requestDeadline").value;
 
   if(request === ""){
     alert("お願い内容を書いてね！");
     return;
   }
 
-  const ok = confirm(
-    "このお願い内容で\n今月分を使用しますか？\n\n" + request
-  );
+  const ok = await confirmRequestPass({request,category,deadline,image:requestImageData});
 
   if(!ok){
     return;
@@ -2916,7 +3109,10 @@ if(ticketArea){
   formData.append("form-name", "request-pass");
   formData.append("sender", profileLabel());
   formData.append("request", request);
+  formData.append("category", category);
+  formData.append("deadline", deadline || "指定なし");
   formData.append("date", new Date().toLocaleString());
+  if(requestImageData) formData.append("image",dataUrlToBlob(requestImageData),requestImageName);
 
   const response = await fetch("https://formspree.io/f/mzdwkndw", {
     method:"POST",
@@ -2931,11 +3127,15 @@ if(ticketArea){
   }
   requestHistory.unshift({
     text:request,
+    category,
+    deadline,
+    status:"受付済み",
     sender:profileLabel(),
     date:new Date().toLocaleString("ja-JP")
   });
   localStorage.setItem("requestHistory", JSON.stringify(requestHistory));
   renderRequestHistory();
+  showPassUseEffect();
   await new Promise(resolve => setTimeout(resolve, 600));
   sound.play();
 
@@ -3213,6 +3413,7 @@ function setUsed(withAnimation){
   statusText.textContent = "USED";
   btn.textContent = "今月は使用済み";
   btn.disabled = true;
+  updatePassRemaining();
 
   const messages = [
     "REQUEST RECEIVED ♡",
@@ -3398,6 +3599,7 @@ function setActive(){
 
   requestText.disabled = false;
   requestText.value = "";
+  updatePassRemaining();
 
   statusText.textContent = "ACTIVE";
   btn.textContent = "使用する";
@@ -6593,9 +6795,13 @@ function openApp(){
 
 if(startScreen && app){
 
-  startScreen.onclick = () => {
-    if(currentProfile) openApp();
-    else showProfileSelect();
+  startScreen.onclick = async () => {
+    if(firebasePairId){
+      try{await connectPair();openApp();}
+      catch(error){setCloudStatus("☁ 再連携が必要","error");localStorage.removeItem("firebasePairId");firebasePairId="";showProfileSelect();}
+    }else{
+      showProfileSelect();
+    }
   };
 
 }
