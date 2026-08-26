@@ -751,6 +751,10 @@ button{
   max-width:360px;
   margin:20px auto;
 }
+.game-ranking-card{margin:4px 0 16px;padding:16px;border-radius:22px;background:linear-gradient(145deg,rgba(61,34,91,.94),rgba(20,13,31,.96));border:1px solid rgba(244,114,182,.3);box-shadow:0 14px 30px rgba(0,0,0,.25)}
+.game-ranking-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;font-size:17px;font-weight:950}.game-ranking-title small{font-size:10px;color:#c4b5fd;font-weight:700}
+.ranking-periods{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ranking-period{padding:11px 9px;border-radius:15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09)}.ranking-period h4{margin:0 0 8px;color:#fde68a;font-size:11px;letter-spacing:.08em}.ranking-row{display:flex;justify-content:space-between;align-items:center;padding:5px 2px;font-size:12px}.ranking-row.leader{color:#fff;font-weight:900}.ranking-row.leader::before{content:"👑";margin-right:4px}.ranking-score{margin-left:auto;color:#f9a8d4;font-weight:950}
+.game-bests{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.1)}.game-bests summary{cursor:pointer;color:#ddd6fe;font-size:12px;font-weight:850}.best-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.best-item{padding:8px;border-radius:11px;background:rgba(0,0,0,.2);font-size:10px;color:#c4b5fd}.best-item strong{display:block;margin-top:3px;color:#fff;font-size:12px}
 
 .game-list button{
   width:100%;
@@ -2359,6 +2363,14 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
 
   <div class="tab-content" id="tab-game">
     <button type="button" class="ghost-btn" onclick="showTab('tab-home')">← HOME</button>
+    <section class="game-ranking-card" aria-label="ゲームランキング">
+      <div class="game-ranking-title">🏆 ふたりのランキング <small id="rankingSyncLabel">端末記録</small></div>
+      <div class="ranking-periods">
+        <div class="ranking-period"><h4>WEEKLY</h4><div id="weeklyRankingRows"><div class="ranking-row">まだ記録がないよ</div></div></div>
+        <div class="ranking-period"><h4>MONTHLY</h4><div id="monthlyRankingRows"><div class="ranking-row">まだ記録がないよ</div></div></div>
+      </div>
+      <details class="game-bests"><summary>ゲーム別の最高スコアを見る</summary><div id="gameBestGrid" class="best-grid"></div></details>
+    </section>
     <div class="game-list">
       <button type="button" onclick="mineGame()">💣 爆弾ゲーム<br><span>綺麗な石２個消費</span></button>
       <button type="button" onclick="diceGame()">🎲 サイコロ<br><span>宇宙ポイント5消費</span></button>
@@ -2528,6 +2540,13 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
         <div class="status-label">TOTAL LOGIN DAYS</div>
         <div class="status-value" id="statusTotalLoginValue">0日</div>
       </div>
+
+      <div class="status-card" id="partnerLoginCard" hidden>
+        <div class="status-icon">🫶</div>
+        <div class="status-label">KEIJI LOGIN</div>
+        <div class="status-value" id="partnerLoginDays">確認中</div>
+        <small id="partnerLastSeen" style="display:block;margin-top:6px;color:#a1a1aa;font-size:10px">最終ログイン：--</small>
+      </div>
   
       <div class="status-card">
         <div class="status-icon">🎰</div>
@@ -2666,6 +2685,9 @@ let firebaseUser = null;
 let firebasePairId = localStorage.getItem("firebasePairId") || "";
 let sharedStateReady = false;
 let sharedStateFingerprint = "";
+let gameScoreUnsubscribe = null;
+let pairGameScores = {};
+let partnerLoginUnsubscribe = null;
 
 const firebaseConfig = {
   apiKey: "AIzaSyBl0GQn8mKPPEy12J1fdJD4RczJLdnkMnQ",
@@ -2681,6 +2703,88 @@ function setCloudStatus(text,state=""){
   const status=document.getElementById("cloudSyncStatus");
   if(!status)return;
   status.textContent=text;status.className="cloud-sync-status "+state;
+}
+
+const rankedGames={whack:"🌱 雑草",heart:"💖 ハート",memory:"🧠 記憶",tetris:"🧱 テトリス"};
+
+function scorePeriodKeys(date=new Date()){
+  const local=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  const day=(local.getDay()+6)%7;
+  const monday=new Date(local);monday.setDate(local.getDate()-day);
+  const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  return {week:iso(monday),month:`${local.getFullYear()}-${String(local.getMonth()+1).padStart(2,"0")}`};
+}
+
+function renderGameRankings(){
+  const weekly=document.getElementById("weeklyRankingRows");
+  const monthly=document.getElementById("monthlyRankingRows");
+  const bestGrid=document.getElementById("gameBestGrid");
+  if(!weekly||!monthly||!bestGrid)return;
+  const periods=scorePeriodKeys();
+  const players=["anju","keiji"].map(name=>{
+    const remote=Object.values(pairGameScores).find(item=>item.name===name)||{};
+    const localBest=JSON.parse(localStorage.getItem("gameBestScores")||"{}");
+    const localStats=JSON.parse(localStorage.getItem("gamePeriodScores")||"{}");
+    if(name===currentProfile&&!remote.name)return {name,best:localBest,weekKey:localStats.weekKey,weekTotal:localStats.weekTotal||0,monthKey:localStats.monthKey,monthTotal:localStats.monthTotal||0};
+    return {name,best:remote.best||{},weekKey:remote.weekKey,weekTotal:remote.weekTotal||0,monthKey:remote.monthKey,monthTotal:remote.monthTotal||0};
+  });
+  function rows(type,key){
+    const totalKey=type+"Total",periodKey=type+"Key";
+    const sorted=players.map(p=>({...p,total:p[periodKey]===key?p[totalKey]:0})).sort((a,b)=>b.total-a.total);
+    return sorted.map((p,i)=>`<div class="ranking-row ${p.total>0&&i===0?"leader":""}"><span>${p.name}${p.name===currentProfile?"（あなた）":""}</span><strong class="ranking-score">${p.total} pt</strong></div>`).join("");
+  }
+  weekly.innerHTML=rows("week",periods.week);monthly.innerHTML=rows("month",periods.month);
+  bestGrid.innerHTML=Object.entries(rankedGames).map(([key,label])=>{
+    const values=players.map(p=>`${p.name} ${Number(p.best?.[key]||0)}`).join(" / ");
+    return `<div class="best-item">${label}<strong>${values}</strong></div>`;
+  }).join("");
+}
+
+async function recordGameScore(gameKey,score){
+  score=Math.max(0,Math.floor(Number(score)||0));
+  if(!rankedGames[gameKey])return;
+  const best=JSON.parse(localStorage.getItem("gameBestScores")||"{}");
+  best[gameKey]=Math.max(Number(best[gameKey]||0),score);
+  localStorage.setItem("gameBestScores",JSON.stringify(best));
+  const periods=scorePeriodKeys();
+  const stats=JSON.parse(localStorage.getItem("gamePeriodScores")||"{}");
+  stats.weekTotal=(stats.weekKey===periods.week?Number(stats.weekTotal||0):0)+score;stats.weekKey=periods.week;
+  stats.monthTotal=(stats.monthKey===periods.month?Number(stats.monthTotal||0):0)+score;stats.monthKey=periods.month;
+  localStorage.setItem("gamePeriodScores",JSON.stringify(stats));renderGameRankings();
+  if(!firebaseDb||!firebasePairId||!firebaseUser)return;
+  try{
+    const ref=firebaseDb.doc(`couples/${firebasePairId}/gameScores/${firebaseUser.uid}`);
+    await firebaseDb.runTransaction(async transaction=>{
+      const snap=await transaction.get(ref),old=snap.exists?snap.data():{};
+      const remoteBest={...(old.best||{})};remoteBest[gameKey]=Math.max(Number(remoteBest[gameKey]||0),score);
+      transaction.set(ref,{name:currentProfile,best:remoteBest,weekKey:periods.week,weekTotal:(old.weekKey===periods.week?Number(old.weekTotal||0):0)+score,monthKey:periods.month,monthTotal:(old.monthKey===periods.month?Number(old.monthTotal||0):0)+score,lastGame:gameKey,lastScore:score,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    });
+  }catch(error){console.warn("スコア同期に失敗",error);}
+}
+
+function watchGameScores(pairRef){
+  if(gameScoreUnsubscribe)gameScoreUnsubscribe();
+  gameScoreUnsubscribe=pairRef.collection("gameScores").onSnapshot(snapshot=>{
+    pairGameScores={};snapshot.forEach(doc=>pairGameScores[doc.id]=doc.data());
+    const label=document.getElementById("rankingSyncLabel");if(label)label.textContent="☁ 2人で共有中";
+    renderGameRankings();
+  },()=>{const label=document.getElementById("rankingSyncLabel");if(label)label.textContent="端末記録";});
+}
+
+function watchPartnerLogin(pairRef){
+  const card=document.getElementById("partnerLoginCard");
+  if(!card)return;
+  card.hidden=currentProfile!=="anju";
+  if(partnerLoginUnsubscribe)partnerLoginUnsubscribe();
+  if(currentProfile!=="anju")return;
+  partnerLoginUnsubscribe=pairRef.collection("profiles").onSnapshot(snapshot=>{
+    let partner=null;snapshot.forEach(doc=>{const data=doc.data();if(data.name==="keiji"||data.role==="user")partner=data;});
+    const days=document.getElementById("partnerLoginDays"),seen=document.getElementById("partnerLastSeen");
+    if(!partner){days.textContent="未連携";seen.textContent="keijiが参加すると表示されます";return;}
+    days.textContent=`累計 ${Number(partner.totalLoginDays||0)}日`;
+    const date=partner.lastSeen?.toDate?.();
+    seen.textContent="最終ログイン："+(date?date.toLocaleString("ja-JP",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}):"記録待ち");
+  });
 }
 
 async function ensureFirebase(){
@@ -2713,7 +2817,11 @@ function showInviteCode(code){
   });
 }
 
-const sharedKeys=["lovePoints","loveLevel","requestFragments","spacePoints","grassCount","stoneCount","cloverCount","legendGrassCount","jewelCount","gachaCount","mineDeathCount","loginDates","totalLoginDays","loginStreak","memories","requestHistory","anniversaryMonths","firstAnniversary2026","roomLightOn","catState"];
+const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState"];
+
+function isSharedStorageKey(key){
+  return sharedKeys.includes(key) || /^(roomPos_|hide_|unlock_)/.test(key);
+}
 
 function collectSharedValues(){
   const values={};
@@ -2726,7 +2834,7 @@ function collectSharedValues(){
   });
   for(let i=0;i<localStorage.length;i++){
     const key=localStorage.key(i);
-    if(/^(roomPos_|hide_|unlock_)/.test(key)) values[key]=localStorage.getItem(key);
+    if(isSharedStorageKey(key) && !sharedKeys.includes(key)) values[key]=localStorage.getItem(key);
   }
   return values;
 }
@@ -2743,9 +2851,21 @@ async function uploadSharedState(){
 function applySharedValues(values){
   let changed=false;
   Object.entries(values||{}).forEach(([key,value])=>{
+    if(!isSharedStorageKey(key)) return;
     if(localStorage.getItem(key)!==value){localStorage.setItem(key,value);changed=true;}
   });
   return changed;
+}
+
+function refreshSharedScreen(){
+  lovePoints=Number(localStorage.getItem("lovePoints"))||0;
+  loveLevel=Number(localStorage.getItem("loveLevel"))||0;
+  try{memories=JSON.parse(localStorage.getItem("memories")||"[]");}catch(error){memories=[];}
+  try{requestHistory=JSON.parse(localStorage.getItem("requestHistory")||"[]");}catch(error){requestHistory=[];}
+  try{anniversaryMonths=JSON.parse(localStorage.getItem("anniversaryMonths")||"[]");}catch(error){anniversaryMonths=[];}
+  if(requestText)requestText.value=localStorage.getItem("requestText")||"";
+  renderMemories();renderRequestHistory();updateLoveDisplay();updateRoom();updatePassRemaining();updateExtraHome();updateHomeCard();
+  if(localStorage.getItem("usedMonth")===thisMonth)setUsed(false);else setActive();
 }
 
 async function connectPair(){
@@ -2758,15 +2878,17 @@ async function connectPair(){
   if(data.adminUid!==firebaseUser.uid&&data.userUid!==firebaseUser.uid) throw new Error("この端末はペアに参加していません");
   currentProfile=data.adminUid===firebaseUser.uid?"anju":"keiji";localStorage.setItem("currentProfile",currentProfile);
   await pairRef.collection("profiles").doc(firebaseUser.uid).set({name:currentProfile,role:currentProfile==="anju"?"admin":"user",lastSeen:firebase.firestore.FieldValue.serverTimestamp(),loginStreak,totalLoginDays},{merge:true});
+  watchGameScores(pairRef);
+  watchPartnerLogin(pairRef);
   const stateRef=pairRef.collection("shared").doc("appState");
   const first=await stateRef.get();
-  if(first.exists&&applySharedValues(first.data().values)){sessionStorage.setItem("firebaseSyncedReload","1");location.reload();return;}
+  if(first.exists&&applySharedValues(first.data().values))refreshSharedScreen();
   sharedStateReady=true;
   if(!first.exists){sharedStateFingerprint="";await uploadSharedState();}
   else{sharedStateFingerprint=JSON.stringify(collectSharedValues());}
   stateRef.onSnapshot(snapshot=>{
     if(!snapshot.exists||snapshot.data().updatedBy===firebaseUser.uid)return;
-    if(applySharedValues(snapshot.data().values)){setCloudStatus("☁ 新しいデータを反映","online");setTimeout(()=>location.reload(),700);}
+    if(applySharedValues(snapshot.data().values)){refreshSharedScreen();setCloudStatus("☁ 新しいデータを反映","online");}
   });
   setInterval(uploadSharedState,3500);setCloudStatus("☁ 2人で同期中","online");updateProfileDisplay();
 }
@@ -3428,6 +3550,14 @@ function setUsed(withAnimation){
     messages[Math.floor(Math.random() * messages.length)];
 
   message.classList.add("show-message");
+
+  // 起動時の使用済み表示では、お願い送信後の抽選演出を再実行しない。
+  if(!withAnimation){
+    updateNextDate();
+    updateMonthCard();
+    return;
+  }
+
   let jokeTriggered = false;
   const jokeChance = Math.random();
 
@@ -4093,6 +4223,7 @@ completeDailyQuest("game");
   clearInterval(grassTimer);
 
   grassCount += score;
+  recordGameScore("whack",score);
   localStorage.setItem("grassCount", grassCount);
   updateInventory();
 
@@ -4289,6 +4420,7 @@ function tetrisGame(){
     finished=true;
     clearInterval(timer);
     completeDailyQuest("game");
+    recordGameScore("tetris",score);
     const reward=Math.floor(score/10)+(win?20:0);
     spacePoints+=reward;
     if(win) cloverCount++;
@@ -4476,6 +4608,7 @@ function endHeartGame(){
   clearInterval(heartTimer);
 
   const bonus = Math.floor(score / 10);
+  recordGameScore("heart",score);
 
   spacePoints += score;
   grassCount += bonus;
@@ -4914,6 +5047,8 @@ function flashCell(index){
 }
 
 function endMemoryGame(clear){
+
+  recordGameScore("memory",clear?10:Math.max(0,level-1));
 
   if(clear){
     spacePoints += 20;
@@ -6797,8 +6932,12 @@ if(startScreen && app){
 
   startScreen.onclick = async () => {
     if(firebasePairId){
-      try{await connectPair();openApp();}
-      catch(error){setCloudStatus("☁ 再連携が必要","error");localStorage.removeItem("firebasePairId");firebasePairId="";showProfileSelect();}
+      // 通信を待たずに先にアプリを開く。Firebaseが遅い時も起動画面で止めない。
+      openApp();
+      connectPair().catch(error=>{
+        console.warn("Firebase再接続に失敗",error);
+        setCloudStatus("☁ オフライン・あとで再接続","error");
+      });
     }else{
       showProfileSelect();
     }
@@ -7302,6 +7441,7 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 }
 
 updateRoom();
+renderGameRankings();
 
 </script>
 </body>
