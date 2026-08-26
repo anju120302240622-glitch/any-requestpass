@@ -2942,7 +2942,7 @@ function showInviteCode(code){
 
 function askInviteCode(){
   return new Promise(resolve=>{
-    const modal=document.createElement("div");modal.className="pass-confirm";
+    const modal=document.createElement("div");modal.className="pass-confirm";modal.style.zIndex="21001";
     modal.innerHTML=`<div class="pass-confirm-card"><div class="pass-confirm-ticket">🔗</div><h2>招待コードを入力</h2><p>anjuの端末に表示されたコードを入れてね</p><input id="inviteCodeInput" inputmode="text" autocomplete="off" autocapitalize="characters" placeholder="XXXX-XXXX-XXXX" style="box-sizing:border-box;width:100%;min-height:48px;margin:10px 0;padding:12px;border:1px solid rgba(244,114,182,.35);border-radius:13px;background:#120b1d;color:#fff;font-size:16px;text-align:center;text-transform:uppercase;letter-spacing:.08em"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button type="button" id="inviteCancelBtn" class="ghost-btn">戻る</button><button type="button" id="inviteJoinBtn">連携する</button></div></div>`;
     document.body.appendChild(modal);const input=modal.querySelector("#inviteCodeInput");
     modal.querySelector("#inviteCancelBtn").onclick=()=>{modal.remove();resolve("");};
@@ -3059,7 +3059,10 @@ async function chooseProfile(profile){
       currentProfile="anju";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);
       document.getElementById("profileSelect")?.classList.remove("show");await showInviteCode(code);
     }else{
-      const code=await askInviteCode();if(!code)return;
+      const profileModal=document.getElementById("profileSelect");
+      profileModal?.classList.remove("show");
+      const code=await askInviteCode();
+      if(!code){profileModal?.classList.add("show");return;}
       setCloudStatus("☁ 接続中");await ensureFirebase();
       firebasePairId=await inviteCodeToId(code);const ref=firebaseDb.doc(`couples/${firebasePairId}`);const doc=await ref.get();
       if(!doc.exists)throw new Error("招待コードが違います");
@@ -3068,7 +3071,7 @@ async function chooseProfile(profile){
     }
     updateProfileDisplay();openApp();
     connectPair().catch(error=>{console.warn("初回同期に失敗",error);setCloudStatus("☁ オフライン・あとで再接続","error");});
-  }catch(error){setCloudStatus("☁ 接続エラー","error");alert(error.message||"連携できませんでした");}
+  }catch(error){setCloudStatus("☁ 接続エラー","error");document.getElementById("profileSelect")?.classList.add("show");alert(error.message||"連携できませんでした");}
 }
 
 function escapeHtml(value){
