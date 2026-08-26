@@ -3052,21 +3052,23 @@ function showProfileSelect(){
 async function chooseProfile(profile){
   if(profile !== "anju" && profile !== "keiji") return;
   try{
-    setCloudStatus("☁ 接続中");await ensureFirebase();
     if(profile==="anju"){
+      setCloudStatus("☁ 接続中");await ensureFirebase();
       const code=makeInviteCode();firebasePairId=await inviteCodeToId(code);
       await firebaseDb.doc(`couples/${firebasePairId}`).set({adminUid:firebaseUser.uid,userUid:null,createdAt:firebase.firestore.FieldValue.serverTimestamp()});
       currentProfile="anju";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);
       document.getElementById("profileSelect")?.classList.remove("show");await showInviteCode(code);
     }else{
       const code=await askInviteCode();if(!code)return;
+      setCloudStatus("☁ 接続中");await ensureFirebase();
       firebasePairId=await inviteCodeToId(code);const ref=firebaseDb.doc(`couples/${firebasePairId}`);const doc=await ref.get();
       if(!doc.exists)throw new Error("招待コードが違います");
       if(doc.data().userUid&&doc.data().userUid!==firebaseUser.uid)throw new Error("この招待コードはすでに使用されています");
       await ref.update({userUid:firebaseUser.uid,joinedAt:firebase.firestore.FieldValue.serverTimestamp()});
       currentProfile="keiji";localStorage.setItem("firebasePairId",firebasePairId);localStorage.setItem("currentProfile",currentProfile);document.getElementById("profileSelect")?.classList.remove("show");
     }
-    await connectPair();updateProfileDisplay();openApp();
+    updateProfileDisplay();openApp();
+    connectPair().catch(error=>{console.warn("初回同期に失敗",error);setCloudStatus("☁ オフライン・あとで再接続","error");});
   }catch(error){setCloudStatus("☁ 接続エラー","error");alert(error.message||"連携できませんでした");}
 }
 
