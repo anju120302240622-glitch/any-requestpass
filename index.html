@@ -1511,6 +1511,7 @@ button{
   font-size:13px;
   white-space:pre-line;
 }
+.room-talk-message{max-width:84%;margin:8px 0;padding:9px 11px;border-radius:14px 14px 14px 4px;background:rgba(255,255,255,.08);text-align:left;white-space:normal}.room-talk-message.mine{margin-left:auto;border-radius:14px 14px 4px 14px;background:linear-gradient(135deg,rgba(236,72,153,.32),rgba(124,58,237,.3))}.room-talk-message strong{display:block;margin-bottom:3px;color:#f9a8d4;font-size:10px}.room-talk-message span{display:block;overflow-wrap:anywhere}.room-talk-message small{display:block;margin-top:4px;color:#9486a5;font-size:8px}
 .home-status-grid div{
   padding:14px;
   border-radius:18px;
@@ -2952,7 +2953,7 @@ function askInviteCode(){
   });
 }
 
-const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents"];
+const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents","roomTalkMessages"];
 
 function isSharedStorageKey(key){
   return sharedKeys.includes(key) || /^(roomPos_|hide_|unlock_)/.test(key);
@@ -3005,7 +3006,7 @@ function refreshSharedScreen(){
   try{requestHistory=JSON.parse(localStorage.getItem("requestHistory")||"[]");}catch(error){requestHistory=[];}
   try{anniversaryMonths=JSON.parse(localStorage.getItem("anniversaryMonths")||"[]");}catch(error){anniversaryMonths=[];}
   if(requestText)requestText.value=localStorage.getItem("requestText")||"";
-  renderMemories();renderRequestHistory();updateLoveDisplay();updateRoom();updatePassRemaining();updateExtraHome();updateHomeCard();renderTogether();
+  renderMemories();renderRequestHistory();updateLoveDisplay();updateRoom();updatePassRemaining();updateExtraHome();updateHomeCard();renderTogether();renderRoomTalk();
   if(localStorage.getItem("usedMonth")===thisMonth)setUsed(false);else setActive();
 }
 
@@ -4373,12 +4374,22 @@ function showGrass(){
 
 showGrass();
 
-grassTimer = setInterval(showGrass, 650);
+grassTimer = setInterval(showGrass, 480);
 
 timer = setInterval(()=>{
 
   timeLeft--;
   document.getElementById("whackTime").textContent = timeLeft;
+
+  if(timeLeft === 6){
+    clearInterval(grassTimer);
+    grassTimer = setInterval(showGrass, 320);
+  }
+
+  if(timeLeft === 3){
+    clearInterval(grassTimer);
+    grassTimer = setInterval(showGrass, 220);
+  }
 
   if(timeLeft <= 0){
     endWhackGame();
@@ -7086,6 +7097,7 @@ function openApp(){
   startScreen.style.display = "none";
   updateProfileDisplay();
   renderRequestHistory();
+  renderRoomTalk();
   applySettings();
   const memoryDateInput = document.getElementById("memoryDate");
   if(memoryDateInput && !memoryDateInput.value){
@@ -7383,6 +7395,18 @@ function setRoomTalkMessage(text){
   if(log) log.textContent = text;
 }
 
+function getRoomTalkMessages(){
+  try{const messages=JSON.parse(localStorage.getItem("roomTalkMessages")||"[]");return Array.isArray(messages)?messages:[];}catch(error){return [];}
+}
+
+function renderRoomTalk(){
+  const log=document.getElementById("roomTalkLog");if(!log)return;
+  const messages=getRoomTalkMessages();
+  if(!messages.length){log.innerHTML="ここでふたりの会話ができるよ♡";return;}
+  log.innerHTML=messages.slice(-100).map(item=>`<div class="room-talk-message ${item.sender===currentProfile?"mine":""}"><strong>${escapeHtml(item.sender||"ふたり")}</strong><span>${escapeHtml(item.message||"")}</span><small>${escapeHtml(item.displayDate||"")}</small></div>`).join("");
+  log.scrollTop=log.scrollHeight;
+}
+
 async function talkInRoom(){
   const input = document.getElementById("roomTalkInput");
   const sendButton = document.getElementById("roomTalkSendBtn");
@@ -7390,12 +7414,17 @@ async function talkInRoom(){
   const message = input ? input.value.trim() : "";
 
   if(!message){
-    setRoomTalkMessage("話したいことを入力してね♡");
+    if(sendStatus)sendStatus.textContent="話したいことを入力してね♡";
     return;
   }
 
   if(sendButton) sendButton.disabled = true;
   if(sendStatus) sendStatus.textContent = "送信中…";
+
+  const messages=getRoomTalkMessages();
+  messages.push({id:Date.now()+"-"+Math.random().toString(36).slice(2,7),sender:currentProfile||"ふたり",message,createdAt:new Date().toISOString(),displayDate:new Date().toLocaleString("ja-JP")});
+  localStorage.setItem("roomTalkMessages",JSON.stringify(messages.slice(-100)));
+  input.value="";renderRoomTalk();queueSharedUpload();addLove(1);
 
   try{
     const formData = new FormData();
@@ -7414,27 +7443,12 @@ async function talkInRoom(){
       throw new Error("send failed");
     }
   }catch(error){
-    if(sendStatus) sendStatus.textContent = "送信できませんでした。通信を確認してもう一度押してね";
+    if(sendStatus) sendStatus.textContent = "会話には保存しました。メール通知だけ送れませんでした";
     if(sendButton) sendButton.disabled = false;
     return;
   }
-
-  const replies = message.includes("好き") || message.includes("すき")
-    ? ["わたしも大好き♡", "うれしい。もっと聞かせて♡"]
-    : message.includes("おやすみ")
-      ? ["おやすみ。いい夢を見てね🌙", "また明日ここで話そうね"]
-      : message.includes("ただいま")
-        ? ["おかえり♡ 待ってたよ", "おかえり。今日はどんな日だった？"]
-        : message.includes("さみしい")
-          ? ["ここにいるよ。ぎゅーしよう🫂", "話してくれてありがとう。そばにいるよ"]
-          : ["うんうん、もっと聞かせて♡", "そうなんだ。あなたの話を聞けてうれしい", "今日も一緒にいられてうれしいな"];
-
-  const reply = replies[Math.floor(Math.random() * replies.length)];
-  setRoomTalkMessage("あなた：" + message + "\n♡：" + reply);
-  input.value = "";
-  if(sendStatus) sendStatus.textContent = "送信しました ✓";
+  if(sendStatus) sendStatus.textContent = "会話を保存・送信しました ✓";
   if(sendButton) sendButton.disabled = false;
-  addLove(1);
 }
 
 function renderStorage(){
