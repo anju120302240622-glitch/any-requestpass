@@ -1644,6 +1644,7 @@ animation:unlockPop .6s ease;
 .room-avatar{position:absolute;width:18%;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;filter:drop-shadow(0 7px 7px rgba(0,0,0,.34)) drop-shadow(0 0 8px var(--avatar-color));--avatar-color:#ec4899}.avatar-anju{left:28%;bottom:13%}.avatar-keiji{left:51%;bottom:13%;--avatar-color:#7c3aed}.room-avatar img{display:block;width:100%;height:auto;object-fit:contain}.room-avatar b{margin-top:-2px;padding:2px 5px;border-radius:99px;background:rgba(15,8,24,.76);color:#fff;font-size:8px}.room-avatar.avatar-style-1{--avatar-color:#ec4899}.room-avatar.avatar-style-2{--avatar-color:#22c55e}.room-avatar.avatar-style-3{--avatar-color:#3b82f6}.room-avatar.avatar-style-4{--avatar-color:#f59e0b}.avatar-dress-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.avatar-dress-buttons button{margin:0}
 .room-couple-scene{position:absolute;left:25%;bottom:8%;width:52%;z-index:12;pointer-events:none;filter:drop-shadow(0 8px 12px rgba(0,0,0,.42));animation:coupleSceneIn .55s cubic-bezier(.2,.9,.25,1.25)}.room-couple-scene img{display:block;width:100%;height:auto}.room-couple-scene.talking::after{content:"♡  · · ·  ♡";position:absolute;left:25%;top:-5%;color:#f9a8d4;font-size:18px;font-weight:900;text-shadow:0 0 10px #ec4899;animation:talkHearts 1.4s ease-in-out infinite}.room-couple-scene.sleeping{width:43%;left:8%;bottom:18%;z-index:11}.room-couple-scene.sleeping::after{content:"Z  z  z";position:absolute;right:4%;top:-4%;color:#c4b5fd;font-weight:900;animation:talkHearts 1.8s ease-in-out infinite}@keyframes coupleSceneIn{from{opacity:0;transform:scale(.72) translateY(18px)}to{opacity:1;transform:none}}@keyframes talkHearts{50%{transform:translateY(-9px) scale(1.08);opacity:.65}}
 .room-plant.watered{animation:plantHappy .65s ease 2}.room-plant.watered::before{content:"💧 💧";position:absolute;top:-25%;left:15%;font-size:20px;animation:waterDrops .8s ease forwards}.room-plant.grow-2{font-size:64px;filter:drop-shadow(0 0 10px #4ade80)}.room-plant.grow-3{font-size:70px;filter:drop-shadow(0 0 14px #f9a8d4)}.room-plant.grow-3::after{content:"🌺"}@keyframes waterDrops{to{transform:translateY(35px);opacity:0}}@keyframes plantHappy{50%{transform:scale(1.12) rotate(3deg)}}
+.care-status{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:8px 0}.care-meter{padding:7px 4px;border-radius:12px;background:rgba(255,255,255,.08);text-align:center;font-size:10px}.care-meter strong{display:block;font-size:17px;margin-bottom:2px}.room-xp-track{height:9px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden;margin:7px 0}.room-xp-fill{height:100%;width:0;background:linear-gradient(90deg,#c084fc,#f472b6,#facc15);box-shadow:0 0 10px #f472b6;transition:width .6s}.care-pop{position:absolute;z-index:30;font-size:24px;pointer-events:none;animation:careFloat 1.2s ease-out forwards}@keyframes careFloat{from{opacity:0;transform:translateY(10px) scale(.5)}35%{opacity:1;transform:translateY(-5px) scale(1.2)}to{opacity:0;transform:translateY(-55px) scale(.85)}}
 .room-click{
   cursor:pointer;
   transition:.25s;
@@ -2515,6 +2516,19 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
         <div class="avatar-dress-buttons"><button type="button" onclick="buyRoomShopItem('anjuOutfit',30)">👗 anju服 30P</button><button type="button" onclick="buyRoomShopItem('keijiOutfit',30)">🧥 keiji服 30P</button><button type="button" onclick="buyRoomShopItem('cushion',40)">🐾 クッション 40P</button><button type="button" onclick="buyRoomShopItem('plant',50)">🪴 植物 50P</button><button type="button" onclick="roomGacha()" style="grid-column:1/-1">✨ ROOMガチャ 20P</button></div>
       </div>
       <div class="room-talk">
+        <div class="daily-title">🏠 ROOM LEVEL <span id="roomLevelText">1</span></div>
+        <div class="room-xp-track"><div id="roomXpFill" class="room-xp-fill"></div></div>
+        <div id="roomXpText" class="memory-date">次のレベルまで 30XP</div>
+        <div class="care-status"><div class="care-meter"><strong id="careFood">50</strong>ごはん</div><div class="care-meter"><strong id="careFun">50</strong>たのしさ</div><div class="care-meter"><strong id="careLove">50</strong>なかよし</div></div>
+        <div class="avatar-dress-buttons"><button type="button" onclick="careAvatar('feed')">🍰 ごはん</button><button type="button" onclick="careAvatar('play')">🧸 遊ぶ</button><button type="button" onclick="careAvatar('pet')">💗 なでる</button><button type="button" onclick="claimCareMission()">🎁 ミッション</button></div>
+        <div id="careMissionText" class="memory-date">今日のお世話を3回するとプレゼント</div>
+      </div>
+      <div class="room-talk">
+        <div class="daily-title">🌟 TODAY'S SELECT</div>
+        <div id="dailyShopText" class="memory-date">日替わり商品を読み込み中…</div>
+        <button type="button" onclick="buyDailyRoomItem()">今日の商品を見る・購入</button>
+      </div>
+      <div class="room-talk">
         <div class="daily-title">💬 ふたりのTALK</div>
         <input id="roomTalkInput" placeholder="話しかけてね">
         <button type="button" id="roomTalkSendBtn" onclick="talkInRoom()">話して送信</button>
@@ -2984,10 +2998,10 @@ function askInviteCode(){
   });
 }
 
-const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents","roomTalkMessages","avatarAnjuStyle","avatarKeijiStyle","avatarAnjuOutfit","avatarKeijiOutfit","couplePose","plantWaterCount","plantWaterAnju","plantWaterKeiji","shopAnjuOutfit","shopKeijiOutfit"];
+const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents","roomTalkMessages","avatarAnjuStyle","avatarKeijiStyle","avatarAnjuOutfit","avatarKeijiOutfit","couplePose","plantWaterCount","plantWaterAnju","plantWaterKeiji","shopAnjuOutfit","shopKeijiOutfit","roomXP","careFood","careFun","careLove","careDailyDate","careDailyCount","careMissionClaimed"];
 
 function isSharedStorageKey(key){
-  return sharedKeys.includes(key) || /^(roomPos_|hide_|unlock_)/.test(key);
+  return sharedKeys.includes(key) || /^(roomPos_|hide_|unlock_|careDone_)/.test(key);
 }
 
 function collectSharedValues(){
@@ -7429,6 +7443,37 @@ function roomGacha(){
   localStorage.setItem("spacePoints",spacePoints);updateDisplay();updateRoom();queueSharedUpload();
 }
 
+function roomTodayKey(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
+function addRoomXP(amount){localStorage.setItem("roomXP",String((Number(localStorage.getItem("roomXP"))||0)+amount));}
+
+function careAvatar(action){
+  const today=roomTodayKey(),doneKey="careDone_"+today+"_"+action;if(localStorage.getItem(doneKey)==="true"){showUnlockPop("CARE","このお世話は今日はもうできたよ。また明日ね");return;}
+  localStorage.setItem(doneKey,"true");const data={feed:["careFood",18,"🍰"],play:["careFun",18,"🎾"],pet:["careLove",18,"💗"]}[action],next=Math.min(100,(Number(localStorage.getItem(data[0]))||50)+data[1]);localStorage.setItem(data[0],next);
+  if(localStorage.getItem("careDailyDate")!==today){localStorage.setItem("careDailyDate",today);localStorage.setItem("careDailyCount","0");localStorage.removeItem("careMissionClaimed");}
+  localStorage.setItem("careDailyCount",String(Math.min(3,(Number(localStorage.getItem("careDailyCount"))||0)+1)));addRoomXP(8);showCareEffect(data[2]);updateCareSystem();queueSharedUpload();showUnlockPop("CARE TIME","お世話できました！ ROOM XP +8");
+}
+
+function showCareEffect(icon){const room=document.querySelector(".game-room");if(!room)return;for(let i=0;i<5;i++){const el=document.createElement("span");el.className="care-pop";el.textContent=icon;el.style.left=(38+Math.random()*30)+"%";el.style.top=(42+Math.random()*18)+"%";el.style.animationDelay=(i*.09)+"s";room.appendChild(el);setTimeout(()=>el.remove(),1600);}}
+
+function claimCareMission(){
+  const today=roomTodayKey();if(localStorage.getItem("careDailyDate")!==today||(Number(localStorage.getItem("careDailyCount"))||0)<3){showUnlockPop("DAILY MISSION","ごはん・遊ぶ・なでるをすると受け取れます");return;}
+  if(localStorage.getItem("careMissionClaimed")===today){showUnlockPop("DAILY MISSION","今日のプレゼントは受け取り済みです");return;}
+  localStorage.setItem("careMissionClaimed",today);spacePoints+=20;localStorage.setItem("spacePoints",spacePoints);addRoomXP(15);updateDisplay();updateCareSystem();queueSharedUpload();showUnlockPop("MISSION CLEAR","🎁 宇宙ポイント20P・ROOM XP15を獲得！");
+}
+
+function updateCareSystem(){
+  const xp=Number(localStorage.getItem("roomXP"))||0,level=Math.floor(xp/30)+1,within=xp%30,today=roomTodayKey();
+  const levelEl=document.getElementById("roomLevelText"),fill=document.getElementById("roomXpFill"),text=document.getElementById("roomXpText");if(levelEl)levelEl.textContent=level;if(fill)fill.style.width=(within/30*100)+"%";if(text)text.textContent="ROOM XP "+xp+" · 次まで "+(30-within)+"XP";
+  [["careFood","careFood"],["careFun","careFun"],["careLove","careLove"]].forEach(([key,id])=>{const el=document.getElementById(id);if(el)el.textContent=localStorage.getItem(key)||"50";});
+  const count=localStorage.getItem("careDailyDate")===today?(Number(localStorage.getItem("careDailyCount"))||0):0,mission=document.getElementById("careMissionText");if(mission)mission.textContent=localStorage.getItem("careMissionClaimed")===today?"✅ 今日のプレゼント受取済み":"今日のお世話 "+count+"/3 · 達成で20P";updateDailyRoomShop();
+}
+
+const dailyRoomItems=[{name:"猫用ハートクッション",key:"unlock_cushion",price:28,icon:"🐾"},{name:"ふたりの植物",key:"unlock_plant",price:35,icon:"🪴"},{name:"ハートラグ",key:"unlock_rug",price:55,icon:"💗"},{name:"猫タワー",key:"unlock_cattower",price:70,icon:"🐈"},{name:"anjuラベンダー服",key:"shopAnjuOutfit",price:22,icon:"👗"},{name:"keijiニット服",key:"shopKeijiOutfit",price:22,icon:"🧥"}];
+function getDailyRoomItem(){const d=new Date(),seed=d.getFullYear()*372+(d.getMonth()+1)*31+d.getDate();return dailyRoomItems[seed%dailyRoomItems.length];}
+function updateDailyRoomShop(){const item=getDailyRoomItem(),el=document.getElementById("dailyShopText");if(el)el.textContent=item.icon+" "+item.name+" · 本日限定 "+item.price+"P"+(localStorage.getItem(item.key)==="true"?"（所持済み）":"");}
+function buyDailyRoomItem(){const item=getDailyRoomItem();if(localStorage.getItem(item.key)==="true"){showUnlockPop("TODAY'S SELECT","今日はこの商品をもう持っています");return;}if(spacePoints<item.price){showUnlockPop("TODAY'S SELECT","宇宙ポイントが足りません");return;}spacePoints-=item.price;localStorage.setItem("spacePoints",spacePoints);localStorage.setItem(item.key,"true");addRoomXP(10);updateDisplay();updateRoom();queueSharedUpload();showUnlockPop("SPECIAL GET",item.icon+" "+item.name+"を購入！ ROOM XP +10");}
+
 function getFurnitureEl(name){
   return document.getElementById(
     "room" + name.charAt(0).toUpperCase() + name.slice(1)
@@ -7687,6 +7732,7 @@ if(room){
   updateAnniversaryDisplay();
   updateCatControl();
   updateAvatars();
+  updateCareSystem();
 }
 
 // Every full-screen mini game gets the same always-visible exit control.
