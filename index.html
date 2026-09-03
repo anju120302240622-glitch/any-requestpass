@@ -1635,10 +1635,11 @@ animation:unlockPop .6s ease;
 
 .room-game{
     position:absolute;
-    width:9%;
-    right:18%;
-    bottom:24%;
+    width:17%;
+    right:15%;
+    bottom:22%;
     z-index:7;
+    filter:drop-shadow(0 6px 8px rgba(0,0,0,.38));
 }
 .room-cushion,.room-rug,.room-plant,.room-cattower,.room-starwindow{position:absolute;display:grid;place-items:center;user-select:none;filter:drop-shadow(0 7px 8px rgba(0,0,0,.3))}.room-cushion{width:20%;aspect-ratio:1.35;left:42%;bottom:9%;border-radius:50%;background:radial-gradient(ellipse at 45% 38%,#f9a8d4,#be185d 72%);border:3px solid #fbcfe8;box-shadow:inset 0 -8px 12px rgba(76,29,149,.24);font-size:22px}.room-cushion::after{content:"🐾"}.room-rug{width:48%;aspect-ratio:1.8;left:27%;bottom:3%;z-index:3;border-radius:50%;background:radial-gradient(ellipse,#f9a8d4,#9d174d 68%,#4c1d95 72%);border:3px solid rgba(255,255,255,.48);font-size:25px}.room-rug::after{content:"♡";color:white;font-size:34px}.room-plant{width:18%;aspect-ratio:.62;left:5%;bottom:18%;z-index:6;font-size:56px}.room-plant::after{content:"🪴"}.room-cattower{width:25%;aspect-ratio:.72;right:4%;bottom:13%;z-index:6;border-radius:35% 35% 12px 12px;background:linear-gradient(90deg,#6d4c7d,#b79ac7 48%,#62436e);border:3px solid #d8c4e4;box-shadow:inset 0 0 0 8px rgba(41,25,49,.22);font-size:24px}.room-cattower::before{content:"🐾";position:absolute;top:9%;width:48%;aspect-ratio:1;border-radius:50%;display:grid;place-items:center;background:#27192f;border:3px solid #d8c4e4}.room-cattower::after{content:"〰";position:absolute;bottom:13%;color:#f3e8ff;font-size:31px}.room-starwindow{width:34%;aspect-ratio:1.25;left:33%;top:8%;z-index:2;border-radius:48% 48% 10px 10px;background:radial-gradient(circle at 35% 28%,#fde68a 0 2%,transparent 3%),radial-gradient(circle at 68% 42%,#fff 0 1.5%,transparent 2.5%),radial-gradient(circle at 52% 68%,#f9a8d4 0 2%,transparent 3%),linear-gradient(#1e1b4b,#312e81 55%,#7c3aed);border:7px solid #d8c4e4;box-shadow:inset 0 0 25px #111827,0 0 18px rgba(167,139,250,.4)}.room-starwindow::after{content:"☾";color:#fde68a;font-size:31px;text-shadow:0 0 14px #facc15}
 .room-avatar{position:absolute;width:30%;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;filter:drop-shadow(0 7px 7px rgba(0,0,0,.34)) drop-shadow(0 0 8px var(--avatar-color));--avatar-color:#ec4899}.avatar-anju{left:16%;bottom:5%}.avatar-keiji{left:52%;bottom:5%;--avatar-color:#7c3aed}.room-avatar img{display:block;width:100%;height:auto;object-fit:contain}.room-avatar b{margin-top:-4px;padding:3px 7px;border-radius:99px;background:rgba(15,8,24,.76);color:#fff;font-size:9px}.room-avatar.avatar-style-1{--avatar-color:#ec4899}.room-avatar.avatar-style-2{--avatar-color:#22c55e}.room-avatar.avatar-style-3{--avatar-color:#3b82f6}.room-avatar.avatar-style-4{--avatar-color:#f59e0b}.avatar-dress-buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px}.avatar-dress-buttons button{margin:0}
@@ -2513,7 +2514,7 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
       <div class="room-talk">
         <div class="daily-title">🛍 ROOM SHOP</div>
         <div id="roomShopBalance" class="memory-date">宇宙ポイントで服や家具を買えます</div>
-        <div class="avatar-dress-buttons"><button type="button" onclick="buyRoomShopItem('anjuOutfit',30)">👗 anju服 30P</button><button type="button" onclick="buyRoomShopItem('keijiOutfit',30)">🧥 keiji服 30P</button><button type="button" onclick="buyRoomShopItem('cushion',40)">🐾 クッション 40P</button><button type="button" onclick="buyRoomShopItem('plant',50)">🪴 植物 50P</button><button type="button" onclick="roomGacha()" style="grid-column:1/-1">✨ ROOMガチャ 20P</button></div>
+        <div class="avatar-dress-buttons"><button type="button" onclick="buyRoomShopItem('anjuOutfit',30)">👗 anju服 30P</button><button type="button" onclick="buyRoomShopItem('keijiOutfit',30)">🧥 keiji服 30P</button><button type="button" onclick="buyRoomShopItem('anjuWardrobe',45)">🎀 anju追加2着 45P</button><button type="button" onclick="buyRoomShopItem('keijiWardrobe',45)">🌙 keiji追加2着 45P</button><button type="button" onclick="buyRoomShopItem('cushion',40)">🐾 クッション 40P</button><button type="button" onclick="buyRoomShopItem('plant',50)">🪴 植物 50P</button><button type="button" onclick="roomGacha()" style="grid-column:1/-1">✨ ROOMガチャ 20P</button></div>
       </div>
       <div class="room-talk">
         <div class="daily-title">🏠 ROOM LEVEL <span id="roomLevelText">1</span></div>
@@ -2998,7 +2999,7 @@ function askInviteCode(){
   });
 }
 
-const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents","roomTalkMessages","avatarAnjuStyle","avatarKeijiStyle","avatarAnjuOutfit","avatarKeijiOutfit","couplePose","plantWaterCount","plantWaterAnju","plantWaterKeiji","shopAnjuOutfit","shopKeijiOutfit","roomXP","careFood","careFun","careLove","careDailyDate","careDailyCount","careMissionClaimed"];
+const sharedKeys=["lovePoints","loveLevel","memories","requestHistory","usedMonth","requestText","anniversaryMonths","firstAnniversary2026","roomLightOn","catState","secretGifts","coupleMission","coupleTodayNote","customCalendarEvents","roomTalkMessages","avatarAnjuStyle","avatarKeijiStyle","avatarAnjuOutfit","avatarKeijiOutfit","couplePose","plantWaterCount","plantWaterAnju","plantWaterKeiji","shopAnjuOutfit","shopKeijiOutfit","shopAnjuWardrobe","shopKeijiWardrobe","roomXP","careFood","careFun","careLove","careDailyDate","careDailyCount","careMissionClaimed"];
 
 function isSharedStorageKey(key){
   return sharedKeys.includes(key) || /^(roomPos_|hide_|unlock_|careDone_)/.test(key);
@@ -3009,7 +3010,17 @@ function collectSharedValues(){
   sharedKeys.forEach(key=>{
     let value=localStorage.getItem(key);
     if(key==="memories" && value){
-      try{value=JSON.stringify(JSON.parse(value).map(item=>({...item,image:""})));}catch(error){}
+      try{
+        const sharedMemories=JSON.parse(value);
+        let serialized=JSON.stringify(sharedMemories);
+        while(serialized.length>700000){
+          const oldestWithPhoto=[...sharedMemories].reverse().find(item=>item.image);
+          if(!oldestWithPhoto)break;
+          oldestWithPhoto.image="";
+          serialized=JSON.stringify(sharedMemories);
+        }
+        value=serialized;
+      }catch(error){}
     }
     if(value!==null) values[key]=value;
   });
@@ -3575,13 +3586,13 @@ function prepareMemoryImage(file){
   reader.onload = ()=>{
     const image = new Image();
     image.onload = ()=>{
-      const maxSize = 900;
+      const maxSize = 420;
       const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
       const canvas = document.createElement("canvas");
       canvas.width = Math.max(1, Math.round(image.width * scale));
       canvas.height = Math.max(1, Math.round(image.height * scale));
       canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
-      memoryImageData = canvas.toDataURL("image/jpeg", .72);
+      memoryImageData = canvas.toDataURL("image/jpeg", .55);
       memoryImageFileName = (file.name.replace(/\.[^.]+$/, "") || "memory-photo") + ".jpg";
       if(preview){ preview.src = memoryImageData; preview.classList.add("show"); }
       if(sendStatus) sendStatus.textContent = "写真を追加しました ✓";
@@ -3634,6 +3645,7 @@ async function saveMemory(){
     addLove(15);
     incrementCoupleMission("memories");
     renderMemories();
+    queueSharedUpload();
   }
 
   if(sendButton) sendButton.disabled = true;
@@ -7386,10 +7398,10 @@ function updateAvatars(){
     const el=document.getElementById(id);if(!el)return;const style=Number(localStorage.getItem("avatar"+name.charAt(0).toUpperCase()+name.slice(1)+"Style"))||1;
     el.classList.remove("avatar-style-1","avatar-style-2","avatar-style-3","avatar-style-4");el.classList.add("avatar-style-"+style);
     const img=el.querySelector("img"),outfit=Number(localStorage.getItem("avatar"+name.charAt(0).toUpperCase()+name.slice(1)+"Outfit"))||1;
-    if(img)img.src="assets/room/avatar_"+name+(outfit===2?"_outfit2":"")+".png";
+    if(img)img.src="assets/room/avatar_"+name+(outfit>1?"_outfit"+outfit:"")+".png";
   });
   const anjuBtn=document.getElementById("avatarAnjuBtn"),keijiBtn=document.getElementById("avatarKeijiBtn");
-  if(anjuBtn)anjuBtn.disabled=currentProfile!=="anju";if(keijiBtn)keijiBtn.disabled=currentProfile!=="keiji";
+  if(anjuBtn)anjuBtn.disabled=false;if(keijiBtn)keijiBtn.disabled=false;
   updateCouplePose();updatePlantGrowth();
 }
 
@@ -7398,10 +7410,12 @@ function cycleAvatarStyle(name){
 }
 
 function cycleAvatarOutfit(name){
-  if(name!==currentProfile)return;
-  if(localStorage.getItem("shop"+name.charAt(0).toUpperCase()+name.slice(1)+"Outfit")!=="true"){showUnlockPop("SHOP","先にROOM SHOPでこの服を購入してね");return;}
-  const key="avatar"+name.charAt(0).toUpperCase()+name.slice(1)+"Outfit",next=(Number(localStorage.getItem(key))||1)===1?2:1;
-  localStorage.setItem(key,next);setCouplePose("normal",true);updateAvatars();queueSharedUpload();showUnlockPop("DRESS UP",next===2?"新しい服に着替えました ✨":"いつもの服に戻りました");
+  const cap=name.charAt(0).toUpperCase()+name.slice(1),available=[1];
+  if(localStorage.getItem("shop"+cap+"Outfit")==="true")available.push(2);
+  if(localStorage.getItem("shop"+cap+"Wardrobe")==="true")available.push(3,4);
+  if(available.length===1){showUnlockPop("SHOP","先にROOM SHOPでこの人の服を購入してね");return;}
+  const key="avatar"+cap+"Outfit",current=Number(localStorage.getItem(key))||1,index=available.indexOf(current),next=available[(index+1)%available.length];
+  localStorage.setItem(key,next);setCouplePose("normal",true);updateAvatars();queueSharedUpload();showUnlockPop("DRESS UP",name+"をコーデ "+next+"に着替えました ✨");
 }
 
 function setCouplePose(pose,silent){
@@ -7412,7 +7426,9 @@ function updateCouplePose(){
   const pose=localStorage.getItem("couplePose")||"normal",scene=document.getElementById("roomCoupleScene"),img=document.getElementById("roomCoupleSceneImage");
   const a=document.getElementById("roomAvatarAnju"),k=document.getElementById("roomAvatarKeiji");if(!scene||!img)return;
   if(pose==="normal"){scene.style.display="none";if(a)a.style.visibility="visible";if(k)k.style.visibility="visible";return;}
-  scene.className="room-couple-scene "+pose;img.src=pose==="sleeping"?"assets/room/avatar_sleeping_v2.png":"assets/room/avatar_talking.png";scene.style.display="block";if(pose==="sleeping"){const room=document.querySelector(".game-room"),bed=document.getElementById("roomBed");if(room&&bed){const rr=room.getBoundingClientRect(),br=bed.getBoundingClientRect();scene.style.left=(((br.left-rr.left)+br.width*.08)/rr.width*100)+"%";scene.style.top=(((br.top-rr.top)+br.height*.28)/rr.height*100)+"%";scene.style.width=(br.width*.78/rr.width*100)+"%";scene.style.bottom="auto";}img.onload=positionSleepingOnBed;}else{scene.style.left="30%";scene.style.top="auto";scene.style.bottom="11%";scene.style.width="40%";}if(a)a.style.visibility="hidden";if(k)k.style.visibility="hidden";
+  scene.className="room-couple-scene "+pose;
+  img.onerror=()=>{if(pose==="sleeping"&&!img.src.endsWith("avatar_sleeping.png")){img.onerror=null;img.src="assets/room/avatar_sleeping.png";}};
+  img.src=pose==="sleeping"?"assets/room/avatar_sleeping_v2.png":"assets/room/avatar_talking.png";scene.style.display="block";if(pose==="sleeping"){const room=document.querySelector(".game-room"),bed=document.getElementById("roomBed");if(room&&bed){const rr=room.getBoundingClientRect(),br=bed.getBoundingClientRect();scene.style.left=(((br.left-rr.left)+br.width*.08)/rr.width*100)+"%";scene.style.top=(((br.top-rr.top)+br.height*.28)/rr.height*100)+"%";scene.style.width=(br.width*.78/rr.width*100)+"%";scene.style.bottom="auto";}img.onload=positionSleepingOnBed;}else{scene.style.left="30%";scene.style.top="auto";scene.style.bottom="11%";scene.style.width="40%";}if(a)a.style.visibility="hidden";if(k)k.style.visibility="hidden";
 }
 
 function positionSleepingOnBed(){
@@ -7442,14 +7458,14 @@ function updatePlantGrowth(){
 function buyRoomShopItem(item,price){
   spacePoints=Number(localStorage.getItem("spacePoints"))||0;
   if(spacePoints<price){showUnlockPop("SHOP","必要："+price+"P／現在："+spacePoints+"Pです");return;}
-  const map={anjuOutfit:"shopAnjuOutfit",keijiOutfit:"shopKeijiOutfit",cushion:"unlock_cushion",plant:"unlock_plant"},key=map[item];if(localStorage.getItem(key)==="true"){showUnlockPop("SHOP","もう持っています ✨");return;}
+  const map={anjuOutfit:"shopAnjuOutfit",keijiOutfit:"shopKeijiOutfit",anjuWardrobe:"shopAnjuWardrobe",keijiWardrobe:"shopKeijiWardrobe",cushion:"unlock_cushion",plant:"unlock_plant"},key=map[item];if(localStorage.getItem(key)==="true"){showUnlockPop("SHOP","もう持っています ✨");return;}
   spacePoints-=price;localStorage.setItem("spacePoints",spacePoints);localStorage.setItem(key,"true");updateInventory();updateRoom();queueSharedUpload();showUnlockPop("PURCHASE","購入しました！ 残り "+spacePoints+"Pです 🛍");
 }
 
 function roomGacha(){
   spacePoints=Number(localStorage.getItem("spacePoints"))||0;
   if(spacePoints<20){showUnlockPop("ROOM GACHA","必要：20P／現在："+spacePoints+"Pです");return;}spacePoints-=20;
-  const prizes=[{key:"shopAnjuOutfit",name:"anjuのラベンダーコーデ"},{key:"shopKeijiOutfit",name:"keijiのニットコーデ"},{key:"unlock_cushion",name:"猫用ハートクッション"},{key:"unlock_plant",name:"ふたりの植物"}],prize=prizes[Math.floor(Math.random()*prizes.length)];
+  const prizes=[{key:"shopAnjuOutfit",name:"anjuのラベンダーコーデ"},{key:"shopKeijiOutfit",name:"keijiのニットコーデ"},{key:"shopAnjuWardrobe",name:"anju追加コーデ2着"},{key:"shopKeijiWardrobe",name:"keiji追加コーデ2着"},{key:"unlock_cushion",name:"猫用ハートクッション"},{key:"unlock_plant",name:"ふたりの植物"}],prize=prizes[Math.floor(Math.random()*prizes.length)];
   if(localStorage.getItem(prize.key)==="true"){spacePoints+=10;showUnlockPop("DUPLICATE","かぶり！ 宇宙ポイント10Pに変わりました ✨");}else{localStorage.setItem(prize.key,"true");showUnlockPop("RARE GET","✨ "+prize.name+"を獲得！ ✨");}
   localStorage.setItem("spacePoints",spacePoints);updateInventory();updateRoom();queueSharedUpload();
 }
