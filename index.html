@@ -2789,10 +2789,14 @@ function scorePeriodKeys(date=new Date()){
 }
 
 const weeklyGameEvents=[
-  {game:"whack",title:"🌱 SPEED GARDEN WEEK",rule:"雑草もぐらたたきのスコアが2倍。今週は素早さで勝負！",target:60,accent:"#4ade80"},
-  {game:"heart",title:"💖 LOVE RUSH WEEK",rule:"ハートキャッチのスコアが2倍。取り逃さず連続キャッチ！",target:80,accent:"#fb7185"},
-  {game:"memory",title:"🧠 MEMORY LAB WEEK",rule:"記憶ゲームのスコアが2倍。どこまで覚えられるか挑戦！",target:20,accent:"#60a5fa"},
-  {game:"tetris",title:"🧱 COMBO BLOCK WEEK",rule:"ミニテトリスのスコアが2倍。ラインとコンボを狙おう！",target:120,accent:"#c084fc"}
+  {game:"whack",mode:"turbo",title:"🌱 TURBO GARDEN",rule:"8秒の超高速モード！雑草スコアも2倍。",target:50,accent:"#4ade80"},
+  {game:"heart",mode:"poison",title:"🖤 POISON HEART",rule:"毒ハートが大量出現。避けながら本物のハートを集めよう！",target:60,accent:"#fb7185"},
+  {game:"memory",mode:"flash",title:"⚡ FLASH MEMORY",rule:"点灯時間が短い高速記憶モード。スコア2倍！",target:16,accent:"#60a5fa"},
+  {game:"tetris",mode:"rush",title:"🧱 TETRIS RUSH",rule:"ブロックが高速落下するラッシュモード。",target:100,accent:"#c084fc"},
+  {game:"whack",mode:"bomb",title:"💣 BOMB GARDEN",rule:"雑草に爆弾が混ざる！爆弾を押すとスコア−2。",target:50,accent:"#f59e0b"},
+  {game:"heart",mode:"jewel",title:"💎 JEWEL HEART",rule:"高得点の宝石ハートが増えるボーナスステージ！",target:90,accent:"#22d3ee"},
+  {game:"memory",mode:"long",title:"🔮 LONG MEMORY",rule:"いつもより2つ長い順番を覚えるチャレンジ。",target:16,accent:"#818cf8"},
+  {game:"tetris",mode:"garbage",title:"⚠️ GARBAGE BLOCK",rule:"下2段がおじゃまブロックで埋まった状態からスタート。",target:100,accent:"#f97316"}
 ];
 
 function currentWeeklyGameEvent(){
@@ -4412,6 +4416,8 @@ function whackGrassGame(){
 
 addLove(1);
 completeDailyQuest("game");
+const weekly = currentWeeklyGameEvent();
+const weeklyMode = weekly.game === "whack" ? weekly.mode : "normal";
 
 const game = document.createElement("div");
 
@@ -4429,15 +4435,16 @@ game.style.padding = "20px";
 game.style.boxSizing = "border-box";
 
 let score = 0;
-let timeLeft = 10;
+let timeLeft = weeklyMode === "turbo" ? 8 : 10;
 let currentIndex = -1;
+let currentKind = "grass";
 let timer = null;
 let grassTimer = null;
 
 game.innerHTML = `
   <h2>🌱 雑草もぐらたたき 🌱</h2>
-  <p>出てきた雑草をタップ！</p>
-  <p>TIME：<span id="whackTime">10</span>　SCORE：<span id="whackScore">0</span></p>
+  <p>${weeklyMode==="bomb"?"🌱だけタップ！💣はスコア−2":weeklyMode==="turbo"?"⚡8秒の超高速モード！":"出てきた雑草をタップ！"}</p>
+  <p>TIME：<span id="whackTime">${timeLeft}</span>　SCORE：<span id="whackScore">0</span></p>
   <div class="whack-area" id="whackArea"></div>
   <button type="button" id="whackEndBtn">やめる</button>
 `;
@@ -4453,8 +4460,11 @@ for(let i=0; i<9; i++){
 
   cell.onclick = () => {
     if(i === currentIndex){
-      score++;
-      cell.textContent = "✨";
+      if(currentKind==="bomb"){
+        score=Math.max(0,score-2);cell.textContent="💥";if(navigator.vibrate)navigator.vibrate([70,30,70]);
+      }else{
+        score++;cell.textContent="✨";
+      }
       cell.classList.add("hit");
       document.getElementById("whackScore").textContent = score;
       currentIndex = -1;
@@ -4473,12 +4483,13 @@ function showGrass(){
   });
 
   currentIndex = Math.floor(Math.random()*9);
-  cells[currentIndex].textContent = "🌱";
+  currentKind = weeklyMode==="bomb"&&Math.random()<.28 ? "bomb" : "grass";
+  cells[currentIndex].textContent = currentKind==="bomb" ? "💣" : "🌱";
 }
 
 showGrass();
 
-grassTimer = setInterval(showGrass, 480);
+grassTimer = setInterval(showGrass, weeklyMode==="turbo"?300:480);
 
 timer = setInterval(()=>{
 
@@ -4487,12 +4498,12 @@ timer = setInterval(()=>{
 
   if(timeLeft === 6){
     clearInterval(grassTimer);
-    grassTimer = setInterval(showGrass, 320);
+    grassTimer = setInterval(showGrass, weeklyMode==="turbo"?210:320);
   }
 
   if(timeLeft === 3){
     clearInterval(grassTimer);
-    grassTimer = setInterval(showGrass, 220);
+    grassTimer = setInterval(showGrass, weeklyMode==="turbo"?150:220);
   }
 
   if(timeLeft <= 0){
@@ -4631,6 +4642,14 @@ function rockPaperScissorsGame(){
 function tetrisGame(){
   const rows = 16, cols = 10;
   const board = Array.from({length:rows}, () => Array(cols).fill(0));
+  const weekly=currentWeeklyGameEvent();
+  const weeklyMode=weekly.game==="tetris"?weekly.mode:"normal";
+  if(weeklyMode==="garbage"){
+    for(let r=rows-2;r<rows;r++){
+      const hole=Math.floor(Math.random()*cols);
+      board[r]=Array.from({length:cols},(_,c)=>c===hole?0:1);
+    }
+  }
   const shapes = [
     [[1,1,1,1]], [[1,1],[1,1]], [[0,1,0],[1,1,1]],
     [[1,0,0],[1,1,1]], [[0,0,1],[1,1,1]], [[0,1,1],[1,1,0]], [[1,1,0],[0,1,1]]
@@ -4641,7 +4660,7 @@ function tetrisGame(){
   game.style.background = "radial-gradient(circle,#312e81,#020617)";
   game.innerHTML = `
     <div class="game-panel"><h2>🧱 ミニテトリス</h2>
-      <p class="tetris-rule">10ライン消したらクリア！連続で消すとコンボ</p>
+      <p class="tetris-rule">${weeklyMode==="rush"?"⚡高速落下！10ライン消したらクリア":weeklyMode==="garbage"?"⚠️下2段がおじゃま状態！穴をつないで消そう":"10ライン消したらクリア！連続で消すとコンボ"}</p>
       <div class="tetris-hud">
         <div>SCORE<strong id="tetrisScore">0</strong></div>
         <div>LINES<strong><span id="tetrisLines">0</span> / 10</strong></div>
@@ -4734,13 +4753,15 @@ function tetrisGame(){
   document.getElementById("tetRotate").onclick=rotate;
   document.getElementById("tetDown").onclick=down;
   document.getElementById("tetClose").onclick=()=>{clearInterval(timer);game.remove();};
-  spawn(); render(); timer=setInterval(down,650);
+  spawn(); render(); timer=setInterval(down,weeklyMode==="rush"?360:650);
 }
 
 function heartCatchGame(){
 
   addLove(1);
 completeDailyQuest("game");
+const weekly = currentWeeklyGameEvent();
+const weeklyMode = weekly.game === "heart" ? weekly.mode : "normal";
 
 if(cloverCount < 3){
   alert("🍀 クローバーが足りません！");
@@ -4757,18 +4778,18 @@ game.style.background = "radial-gradient(circle,#be185d,#020617)";
 
 let score = 0;
 let combo = 0;
-let timeLeft = 12;
+let timeLeft = weeklyMode === "poison" ? 10 : 12;
 let timer = null;
 let heartTimer = null;
-let dropSpeed = 420;
+let dropSpeed = weeklyMode === "poison" ? 340 : 420;
 
 game.innerHTML = `
   <div class="game-panel">
     <h2>💖 ハートキャッチ HARD 💖</h2>
-    <p>💖をタップ！🖤は押しちゃダメ！</p>
+    <p>${weeklyMode==="poison"?"🖤大量発生！毒を避けて💖をタップ":weeklyMode==="jewel"?"💎大量発生！宝石ハートは高得点":"💖をタップ！🖤は押しちゃダメ！"}</p>
     <p>🍀 クローバー3個消費</p>
     <p>
-      TIME：<span id="heartTime">12</span>
+      TIME：<span id="heartTime">${timeLeft}</span>
       SCORE：<span id="heartScore">0</span>
       COMBO：<span id="heartCombo">0</span>
     </p>
@@ -4788,9 +4809,11 @@ function dropHeart(){
 
   const r = Math.random();
 
-  if(r < 0.15){
+  const jewelRate=weeklyMode==="jewel"?.32:.15;
+  const poisonRate=weeklyMode==="poison"?.55:.35;
+  if(r < jewelRate){
     heart.textContent = "💎";
-  }else if(r < 0.35){
+  }else if(r < poisonRate){
     heart.textContent = "🖤";
   }else{
     heart.textContent = "💖";
@@ -5188,6 +5211,8 @@ function memoryGame(){
 
   addLove(1);
 completeDailyQuest("game");
+const weekly = currentWeeklyGameEvent();
+const weeklyMode = weekly.game === "memory" ? weekly.mode : "normal";
 
 if(grassCount < 5){
   alert("🌱 雑草が足りません！");
@@ -5214,7 +5239,7 @@ let miss = 0;
 game.innerHTML = `
   <div class="game-panel">
     <h2>🧠 記憶ゲーム HARD 🧠</h2>
-    <p>光った順番を覚えてタップ！</p>
+    <p>${weeklyMode==="flash"?"⚡高速で光る順番を覚えてタップ！":weeklyMode==="long"?"🔮通常より2つ長い順番に挑戦！":"光った順番を覚えてタップ！"}</p>
     <p>LEVEL：<span id="memoryLevel">1</span>　MISS：<span id="memoryMiss">0</span>/3</p>
     <div class="memory-board hard" id="memoryBoard"></div>
     <button type="button" id="memoryStartBtn">START</button>
@@ -5293,7 +5318,7 @@ function nextRound(){
   sequence = [];
 
   // レベル1でも最初から5回光る
-  const length = 4 + level;
+  const length = 4 + level + (weeklyMode==="long"?2:0);
 
   for(let i=0; i<length; i++){
     sequence.push(Math.floor(Math.random()*12));
@@ -5310,7 +5335,7 @@ function replaySequence(){
   let i = 0;
 
   // レベルが上がるほど速くなる
-  const speed = Math.max(160, 360 - level * 25);
+  const speed = weeklyMode==="flash"?Math.max(90,220-level*14):Math.max(160,360-level*25);
 
   const show = setInterval(()=>{
 
