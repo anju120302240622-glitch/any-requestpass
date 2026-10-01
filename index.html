@@ -2390,6 +2390,8 @@ textarea,#tab-memories input,.mail-settings input,.room-talk input{
         <div class="ranking-period"><h4>WEEKLY</h4><div id="weeklyRankingRows"><div class="ranking-row">まだ記録がないよ</div></div></div>
         <div class="ranking-period"><h4>MONTHLY</h4><div id="monthlyRankingRows"><div class="ranking-row">まだ記録がないよ</div></div></div>
       </div>
+      <section id="previousMonthResult" class="monthly-penalty" aria-label="先月の結果"></section>
+      <details class="game-bests"><summary>過去の月間結果を見る</summary><div id="monthlyResultHistory"></div></details>
       <div id="monthlyPenalty" class="monthly-penalty pending"><strong>😈 今月の罰ゲーム</strong>ランキング集計中…</div>
       <details class="game-bests"><summary>ゲーム別の最高スコアを見る</summary><div id="gameBestGrid" class="best-grid"></div></details>
     </section>
@@ -2894,6 +2896,56 @@ function claimWeeklyGameReward(){
   spacePoints=Number(localStorage.getItem("spacePoints"))||0;spacePoints+=30;localStorage.setItem("spacePoints",spacePoints);localStorage.setItem("freeGacha",String((Number(localStorage.getItem("freeGacha"))||0)+1));updateInventory();renderWeeklyGameEvent();showUnlockPop("WEEKLY CLEAR","🚀 30Pとガチャ無料券を獲得！");
 }
 
+// Keep the original monthKey/monthTotal fields for older clients.
+// monthlyTotals retains each calendar month before the current fields roll over.
+function monthlyScoreHistory(stats={}){
+  const totals={};
+  Object.entries(stats.monthlyTotals||{}).forEach(([key,value])=>{
+    if(/^\d{4}-(0[1-9]|1[0-2])$/.test(key)&&Number.isFinite(Number(value)))totals[key]=Math.max(0,Number(value));
+  });
+  if(/^\d{4}-(0[1-9]|1[0-2])$/.test(stats.monthKey||"")){
+    totals[stats.monthKey]=Math.max(totals[stats.monthKey]||0,Number(stats.monthTotal)||0);
+  }
+  return totals;
+}
+function mergeMonthlyScores(...histories){
+  const totals={};
+  histories.forEach(history=>Object.entries(history).forEach(([key,value])=>{
+    totals[key]=Math.max(totals[key]||0,value);
+  }));
+  return totals;
+}
+function previousScoreMonth(month){
+  const [year,number]=month.split("-").map(Number);
+  return number===1?`${year-1}-12`:`${year}-${String(number-1).padStart(2,"0")}`;
+}
+function monthlyResultMarkup(month,players){
+  const title=`${Number(month.slice(0,4))}年${Number(month.slice(5))}月`;
+  const scores=players.map(player=>({name:player.name,total:player.monthlyTotals[month]}));
+  const rows=scores.map(p=>`<div class="ranking-row"><span>${p.name}</span><strong>${p.total===undefined?"記録なし":p.total+" pt"}</strong></div>`).join("");
+  let result;
+  if(scores.some(p=>p.total===undefined)){
+    result="記録が揃っていないため勝敗は未確定です。相手の同期を待つか、旧版で先月分が上書きされていないか確認してください。";
+  }else if(scores.every(p=>p.total===0)){
+    result="ふたりとも0点 · 勝者・罰ゲームなし";
+  }else if(scores[0].total===scores[1].total){
+    result="🤝 引き分け！ 罰ゲームなし";
+  }else{
+    const ranked=[...scores].sort((a,b)=>b.total-a.total);
+    const task=monthlyPenalties[Number(month.replace("-",""))%monthlyPenalties.length];
+    result=`🏆 勝者：${ranked[0].name}<br>😈 ${ranked[1].name}の罰ゲーム：「${task}」`;
+  }
+  return `<strong>${title}の結果</strong>${rows}<p>${result}</p>`;
+}
+function renderMonthlyResults(players,currentMonth){
+  const previous=previousScoreMonth(currentMonth);
+  const card=document.getElementById("previousMonthResult");
+  if(card)card.innerHTML=monthlyResultMarkup(previous,players);
+  const history=document.getElementById("monthlyResultHistory");
+  const months=[...new Set(players.flatMap(p=>Object.keys(p.monthlyTotals)))].filter(key=>key<currentMonth&&key!==previous).sort().reverse();
+  if(history)history.innerHTML=months.length?months.map(month=>`<div class="monthly-penalty">${monthlyResultMarkup(month,players)}</div>`).join(""):"<p>以前の月の記録はまだありません。</p>";
+}
+
 function renderGameRankings(){
   const weekly=document.getElementById("weeklyRankingRows");
   const monthly=document.getElementById("monthlyRankingRows");
@@ -2904,13 +2956,15 @@ function renderGameRankings(){
     const remote=Object.values(pairGameScores).find(item=>item.name===name)||{};
     const localBest=JSON.parse(localStorage.getItem("gameBestScores")||"{}");
     const localStats=JSON.parse(localStorage.getItem("gamePeriodScores")||"{}");
-    if(name===currentProfile&&!remote.name)return {name,best:localBest,weekKey:localStats.weekKey,weekTotal:localStats.weekTotal||0,monthKey:localStats.monthKey,monthTotal:localStats.monthTotal||0};
+    const monthlyTotals=mergeMonthlyScores(monthlyScoreHistory(remote),name===currentProfile?monthlyScoreHistory(localStats):{});
+    if(name===currentProfile&&!remote.name)return {name,monthlyTotals,best:localBest,weekKey:localStats.weekKey,weekTotal:localStats.weekTotal||0,monthKey:localStats.monthKey,monthTotal:localStats.monthTotal||0};
     const best={...(remote.best||{})};
     if(name===currentProfile)Object.keys(rankedGames).forEach(key=>{
       if(key in localBest)best[key]=Math.max(Number(best[key])||0,Number(localBest[key])||0);
     });
-    return {name,best,weekKey:remote.weekKey,weekTotal:remote.weekTotal||0,monthKey:remote.monthKey,monthTotal:remote.monthTotal||0};
+    return {name,monthlyTotals,best,weekKey:remote.weekKey,weekTotal:remote.weekTotal||0,monthKey:remote.monthKey,monthTotal:remote.monthTotal||0};
   });
+  renderMonthlyResults(players,periods.month);
   function rows(type,key){
     const totalKey=type+"Total",periodKey=type+"Key";
     const sorted=players.map(p=>({...p,total:p[periodKey]===key?p[totalKey]:0})).sort((a,b)=>b.total-a.total);
@@ -2946,8 +3000,10 @@ async function recordGameScore(gameKey,score){
   localStorage.setItem("gameBestScores",JSON.stringify(best));
   const periods=scorePeriodKeys();
   const stats=JSON.parse(localStorage.getItem("gamePeriodScores")||"{}");
+  stats.monthlyTotals=monthlyScoreHistory(stats);
   stats.weekTotal=(stats.weekKey===periods.week?Number(stats.weekTotal||0):0)+score;stats.weekKey=periods.week;
-  stats.monthTotal=(stats.monthKey===periods.month?Number(stats.monthTotal||0):0)+score;stats.monthKey=periods.month;
+  stats.monthTotal=(stats.monthlyTotals[periods.month]||0)+score;stats.monthKey=periods.month;
+  stats.monthlyTotals[periods.month]=stats.monthTotal;
   localStorage.setItem("gamePeriodScores",JSON.stringify(stats));renderGameRankings();
   incrementCoupleMission("games");
   if(!firebaseDb||!firebasePairId||!firebaseUser)return;
@@ -2958,7 +3014,13 @@ async function recordGameScore(gameKey,score){
       const remoteBest={...(old.best||{})};
       Object.keys(rankedGames).forEach(key=>{if(key in best)remoteBest[key]=Math.max(Number(remoteBest[key])||0,Number(best[key])||0);});
       remoteBest[gameKey]=Math.max(Number(remoteBest[gameKey]||0),score);
-      transaction.set(ref,{name:scoreProfile,best:remoteBest,weekKey:periods.week,weekTotal:(old.weekKey===periods.week?Number(old.weekTotal||0):0)+score,monthKey:periods.month,monthTotal:(old.monthKey===periods.month?Number(old.monthTotal||0):0)+score,lastGame:gameKey,lastScore:score,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      const monthlyTotals=monthlyScoreHistory(old);
+      // Import only closed local months; current scores are added by the transaction.
+      Object.entries(stats.monthlyTotals).forEach(([month,total])=>{
+        if(month<periods.month)monthlyTotals[month]=Math.max(monthlyTotals[month]||0,total);
+      });
+      monthlyTotals[periods.month]=(monthlyTotals[periods.month]||0)+score;
+      transaction.set(ref,{monthlyTotals,name:scoreProfile,best:remoteBest,weekKey:periods.week,weekTotal:(old.weekKey===periods.week?Number(old.weekTotal||0):0)+score,monthKey:periods.month,monthTotal:monthlyTotals[periods.month],lastGame:gameKey,lastScore:score,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
     });
   }catch(error){console.warn("スコア同期に失敗",error);}
 }
@@ -8052,6 +8114,14 @@ if("serviceWorker" in navigator && location.protocol.startsWith("http")){
 updateRoom();
 renderGameRankings();
 renderWeeklyGameEvent();
+// Update an open page across midnight and when returning from the background.
+let displayedScoreMonth=scorePeriodKeys().month;
+function refreshScoreMonth(){
+  const month=scorePeriodKeys().month;
+  if(month!==displayedScoreMonth){displayedScoreMonth=month;renderGameRankings();}
+}
+setInterval(refreshScoreMonth,30000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshScoreMonth();});
 
 </script>
 </body>
